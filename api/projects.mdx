@@ -1,0 +1,325 @@
+---
+title: "Projects API — ZenTao project management endpoints"
+description: "Create and retrieve ZenTao projects via REST API. List executions (sprints), bugs, and builds associated with each project programmatically."
+---
+
+The Projects API gives you programmatic access to ZenTao project records. Projects group executions (sprints or stages), bugs, builds, and linked products under a single planning unit. All requests require a valid token in the `Token` header — see the [authentication guide](/api/authentication) for details. The base URL for all endpoints is `https://your-zentao.example.com/api.php/v1`.
+
+---
+
+## GET /projects
+
+Returns a paginated list of all projects visible to the authenticated user.
+
+<ParamField query="page" type="integer">
+  Page number for pagination. Defaults to `1`.
+</ParamField>
+
+<ParamField query="limit" type="integer">
+  Number of records per page. Defaults to `20`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/projects" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Unique project ID.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Project name.
+</ResponseField>
+<ResponseField name="code" type="string">
+  Short project code.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Project status. One of `wait`, `doing`, `suspended`, `closed`, or `done`.
+</ResponseField>
+<ResponseField name="PM" type="string">
+  Account name of the Project Manager.
+</ResponseField>
+<ResponseField name="begin" type="string">
+  Planned start date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="end" type="string">
+  Planned end date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="acl" type="string">
+  Access control level. One of `open`, `private`, or `custom`.
+</ResponseField>
+
+---
+
+## GET /projects/:id
+
+Returns a single project by its ID.
+
+<ParamField path="id" type="integer" required>
+  The project ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/projects/1" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Unique project ID.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Project name.
+</ResponseField>
+<ResponseField name="code" type="string">
+  Short project code.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Current project status.
+</ResponseField>
+<ResponseField name="PM" type="string">
+  Project Manager account name.
+</ResponseField>
+<ResponseField name="PO" type="string">
+  Product Owner account name.
+</ResponseField>
+<ResponseField name="QD" type="string">
+  QA Director account name.
+</ResponseField>
+<ResponseField name="RD" type="string">
+  R&D Director account name.
+</ResponseField>
+<ResponseField name="begin" type="string">
+  Planned start date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="end" type="string">
+  Planned end date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="realBegin" type="string">
+  Actual start date.
+</ResponseField>
+<ResponseField name="realEnd" type="string">
+  Actual end date.
+</ResponseField>
+<ResponseField name="desc" type="string">
+  Project description (HTML).
+</ResponseField>
+<ResponseField name="acl" type="string">
+  Access control level.
+</ResponseField>
+<ResponseField name="parent" type="integer">
+  ID of the parent program, or `0` if none.
+</ResponseField>
+
+---
+
+## POST /projects
+
+Creates a new project.
+
+<ParamField body="name" type="string" required>
+  Project name.
+</ParamField>
+
+<ParamField body="code" type="string" required>
+  Short project code. Must be unique.
+</ParamField>
+
+<ParamField body="begin" type="string" required>
+  Planned start date in `YYYY-MM-DD` format.
+</ParamField>
+
+<ParamField body="end" type="string" required>
+  Planned end date in `YYYY-MM-DD` format.
+</ParamField>
+
+<ParamField body="PM" type="string">
+  Account name of the Project Manager.
+</ParamField>
+
+<ParamField body="PO" type="string">
+  Account name of the Product Owner.
+</ParamField>
+
+<ParamField body="QD" type="string">
+  Account name of the QA Director.
+</ParamField>
+
+<ParamField body="RD" type="string">
+  Account name of the R&D Director.
+</ParamField>
+
+<ParamField body="desc" type="string">
+  Project description. Accepts HTML.
+</ParamField>
+
+<ParamField body="acl" type="string">
+  Access control level. One of `open` (default), `private`, or `custom`.
+</ParamField>
+
+<ParamField body="parent" type="integer">
+  ID of the parent program. Defaults to `0`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/projects" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Q3 Platform Upgrade",
+    "code": "q3-platform",
+    "begin": "2026-07-01",
+    "end": "2026-09-30",
+    "PM": "bob"
+  }'
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  ID of the newly created project.
+</ResponseField>
+
+---
+
+## GET /projects/:id/executions
+
+Returns all executions (sprints, stages, or kanban boards) belonging to the specified project.
+
+<ParamField path="id" type="integer" required>
+  The project ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/projects/1/executions" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Execution ID.
+</ResponseField>
+<ResponseField name="project" type="integer">
+  Parent project ID.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Execution name.
+</ResponseField>
+<ResponseField name="type" type="string">
+  Execution type. One of `sprint`, `stage`, or `kanban`.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Execution status. One of `wait`, `doing`, `suspended`, `closed`, or `done`.
+</ResponseField>
+<ResponseField name="begin" type="string">
+  Planned start date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="end" type="string">
+  Planned end date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="PM" type="string">
+  Execution manager account name.
+</ResponseField>
+
+---
+
+## GET /projects/:id/bugs
+
+Returns bugs associated with the specified project.
+
+<ParamField path="id" type="integer" required>
+  The project ID.
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter by bug status. One of `active`, `resolved`, or `closed`.
+</ParamField>
+
+<ParamField query="page" type="integer">
+  Page number. Defaults to `1`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/projects/1/bugs?status=active" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Bug ID.
+</ResponseField>
+<ResponseField name="title" type="string">
+  Bug title.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Bug status: `active`, `resolved`, or `closed`.
+</ResponseField>
+<ResponseField name="severity" type="integer">
+  Severity level (1 = critical, 4 = minor).
+</ResponseField>
+<ResponseField name="pri" type="integer">
+  Priority (1 = highest, 4 = lowest).
+</ResponseField>
+<ResponseField name="assignedTo" type="string">
+  Account name of the assignee.
+</ResponseField>
+<ResponseField name="openedBy" type="string">
+  Account name of the reporter.
+</ResponseField>
+<ResponseField name="resolution" type="string">
+  Resolution code when status is `resolved`. One of `fixed`, `bydesign`, `duplicate`, `external`, `notrepro`, `postponed`, or `willnotfix`.
+</ResponseField>
+
+---
+
+## GET /projects/:id/builds
+
+Returns builds associated with the specified project.
+
+<ParamField path="id" type="integer" required>
+  The project ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/projects/1/builds" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Build ID.
+</ResponseField>
+<ResponseField name="project" type="integer">
+  Project ID this build belongs to.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Build name.
+</ResponseField>
+<ResponseField name="date" type="string">
+  Build date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="builder" type="string">
+  Account name of the person who created the build.
+</ResponseField>
+<ResponseField name="desc" type="string">
+  Build description.
+</ResponseField>

@@ -1,0 +1,144 @@
+---
+title: "Configuring permission groups and access control in ZenTao"
+description: "Understand ZenTao's group-based permission system, create custom groups, assign users, and control module-level access across your instance."
+---
+
+ZenTao controls what each user can see and do through **Privilege Groups** (also called permission groups). Every user belongs to one or more groups, and each group holds a set of allowed actions across ZenTao's modules. Rather than setting permissions per user, you define groups once and assign users to them — making it straightforward to manage access at scale.
+
+## How the permission system works
+
+<CardGroup cols={2}>
+  <Card title="Groups define allowed actions" icon="shield-check">
+    A group is a named collection of module privileges. Each privilege corresponds to a specific action — for example, creating a bug, editing a story, or viewing a project.
+  </Card>
+  <Card title="Users inherit group permissions" icon="users">
+    When you add a user to a group, they immediately gain all the privileges that group grants. A user can belong to multiple groups; their effective access is the union of all group memberships.
+  </Card>
+  <Card title="Views control data scope" icon="eye">
+    In addition to action privileges, groups can have a **View** configuration that limits which products, projects, executions, and programs the group members can see.
+  </Card>
+  <Card title="Project-level admin roles" icon="folder-open">
+    Separate from system-wide groups, ZenTao supports project-level administrators who have elevated access within specific projects, products, or executions.
+  </Card>
+</CardGroup>
+
+## Browsing existing groups
+
+Navigate to **Admin** → **Organization** → **Privilege Groups** to see all groups in your system. The list shows each group's name and the users currently assigned to it.
+
+## Creating a custom permission group
+
+<Steps>
+  <Step title="Open the create form">
+    Go to **Admin** → **Organization** → **Privilege Groups** and click **Create Group**.
+  </Step>
+  <Step title="Name the group">
+    Enter a descriptive name. Choose a name that reflects the role this group represents, such as "Testers" or "Product Owners".
+  </Step>
+  <Step title="Set limited access (optional)">
+    If you enable the **Limited** option, the group is marked with the `limited` role. Limited groups have a restricted baseline — they can only access what you explicitly grant them.
+  </Step>
+  <Step title="Save the group">
+    Click **Save**. The group is created with no privileges. You must add privileges and members separately.
+  </Step>
+</Steps>
+
+## Editing an existing group
+
+To rename a group or change its limited setting, click **Edit** next to the group in the group list. After saving, the changes apply immediately to all users in that group.
+
+## Copying a group
+
+If you want to create a new group with similar privileges to an existing one, use **Copy Group**. This creates a duplicate of the source group — including its privilege set — that you can then modify independently.
+
+## Assigning privileges to a group
+
+<Steps>
+  <Step title="Open the privilege editor">
+    From the group list, click the group name to open it, then select **Manage Privileges**.
+  </Step>
+  <Step title="Choose the view type">
+    You can manage privileges by package (grouped by module area) or browse them by module. The **By Package** view is easiest for a broad review; **By Module** is useful when you want to fine-tune access to a specific area.
+  </Step>
+  <Step title="Select the allowed actions">
+    Check the actions you want this group to be able to perform. Each checkbox corresponds to a controller action in ZenTao — for example, the ability to create, edit, delete, or view a particular type of record.
+  </Step>
+  <Step title="Save privileges">
+    Click **Save**. Changes take effect on the next page load for members of the group.
+  </Step>
+</Steps>
+
+<Warning>
+Some privileges have dependencies. If you grant an action that requires another privilege to function correctly, ZenTao may show a warning and automatically include the dependent privilege. Review the notice before confirming.
+</Warning>
+
+## Managing group members
+
+<Steps>
+  <Step title="Open the member manager">
+    From the group list, click **Manage Members** next to the group.
+  </Step>
+  <Step title="Browse users by department">
+    The member manager shows a department tree on the left. Click a department to load the users in that department on the right.
+  </Step>
+  <Step title="Add or remove users">
+    Move users between the **Available** and **Group Members** columns. Outside users (external collaborators) are also available in a separate section.
+  </Step>
+  <Step title="Save membership">
+    Click **Save**. Added users immediately gain the group's privileges; removed users lose them.
+  </Step>
+</Steps>
+
+## Managing the data view (scope)
+
+Beyond controlling what actions a group can perform, you can limit what data group members see. The **Manage View** screen lets you specify which products, projects, executions, and programs are visible to the group.
+
+<Steps>
+  <Step title="Open the view manager">
+    From the group list, click **Manage View** next to the group.
+  </Step>
+  <Step title="Select visible objects">
+    Check the products, programs, projects, and executions that members of this group should be able to see. Unchecked items will not appear in their navigation or search results.
+  </Step>
+  <Step title="Save the view">
+    Click **Save** to apply the scope restrictions.
+  </Step>
+</Steps>
+
+## Project-level administrators
+
+For more granular control within a specific project, product, or execution, ZenTao supports **project administrators**. A project admin has elevated privileges scoped only to the objects they administer.
+
+To configure project admins:
+
+1. Go to **Admin** → **Organization** → **Privilege Groups**.
+2. Open the admin group (or a group designated for project admin purposes).
+3. Click **Project Admin**.
+4. Assign users to specific programs, projects, products, or executions.
+
+<Note>
+Project-level admin assignments are separate from system-wide group membership. A user can be a project admin on one project while having standard user access elsewhere.
+</Note>
+
+## Restricting access to specific modules
+
+To prevent a group from accessing a module entirely — for example, preventing testers from seeing financial reports — simply do not grant that module's actions to the group. If a user attempts to access a restricted action, ZenTao shows an access denied message directing them to contact an administrator.
+
+You can also disable entire modules at the system level from **Admin** → **System** → **Modules**. Disabled modules are hidden from all users regardless of group membership.
+
+## Frequently asked questions
+
+<AccordionGroup>
+  <Accordion title="What happens if a user belongs to multiple groups?">
+    Their effective privileges are the union of all their groups. If group A allows creating bugs and group B allows editing stories, a member of both groups can do both.
+  </Accordion>
+  <Accordion title="Can I delete a group that has members?">
+    Yes, but the members will lose the privileges that group granted them. ZenTao does not prevent deletion of groups with members. Review membership before deleting.
+  </Accordion>
+  <Accordion title="What is the difference between a 'limited' group and a regular group?">
+    A limited group starts with a restricted access baseline. It is intended for users who should only access what is explicitly granted, with no implied access to common system functions. Use limited groups for external collaborators or read-only users.
+  </Accordion>
+  <Accordion title="Does changing a group's privileges affect users immediately?">
+    Yes. Privilege changes apply to all group members as soon as they load a new page in ZenTao.
+  </Accordion>
+</AccordionGroup>

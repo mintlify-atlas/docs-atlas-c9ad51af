@@ -1,0 +1,163 @@
+---
+title: "Managing users, departments, and accounts in ZenTao"
+description: "Create and organize user accounts, assign roles, build department structures, and control account lifecycle in ZenTao's admin panel."
+---
+
+ZenTao gives administrators full control over who can access the system and how those users are organized. From creating individual accounts to structuring entire department hierarchies, all user management tasks are available under the **Admin** panel in the **Organization** section.
+
+## User types
+
+ZenTao distinguishes between two types of users:
+
+<CardGroup cols={2}>
+  <Card title="Internal users" icon="building">
+    Employees within your organization. They are placed in departments and appear in the company org chart.
+  </Card>
+  <Card title="Outside users" icon="user-tie">
+    External collaborators, contractors, or partners who need access but are not part of your internal department structure.
+  </Card>
+</CardGroup>
+
+Each user also has a **Role** that reflects their function in the project workflow. The available roles are:
+
+| Role code | Display name      |
+|-----------|-------------------|
+| `dev`     | Developer         |
+| `qa`      | Tester            |
+| `pm`      | Scrum Master      |
+| `po`      | Product Owner     |
+| `td`      | Technical Manager |
+| `pd`      | Product Manager   |
+| `qd`      | QA Manager        |
+| `top`     | Senior Manager    |
+| `others`  | Others            |
+
+<Note>
+A user's role affects how they appear in dropdowns and assignment lists across ZenTao, but it does not control their permissions. Permissions are managed separately through **Privilege Groups**. See [Permissions](/admin/permissions) for details.
+</Note>
+
+## Creating a user account
+
+<Steps>
+  <Step title="Open the user creation form">
+    Navigate to **Admin** → **Organization** → **Users**, then click **Add User**.
+  </Step>
+  <Step title="Fill in account information">
+    Enter the required fields:
+
+    - **Account** — the login username (at least 3 characters; letters, numbers, and underscores only)
+    - **Password** — at least 6 characters; the strength requirement depends on your system's security settings
+    - **Repeat Password** — confirm the password
+    - **Name** — the user's real name
+    - **Email** — used for notifications and optional password resets
+    - **Role** — the user's functional role (see the table above)
+    - **Privilege Group** — which permission group the user belongs to
+  </Step>
+  <Step title="Set the user type">
+    Choose **Internal** if this person is in your organization's department structure, or **Outside** for external collaborators.
+  </Step>
+  <Step title="Assign a department (internal users)">
+    Select the department this user belongs to. If the right department does not exist yet, create it first — see [Department structure](#department-structure) below.
+  </Step>
+  <Step title="Save the user">
+    Click **Save**. The account is active immediately and the user can log in with the credentials you set.
+  </Step>
+</Steps>
+
+## User profile fields
+
+Each user profile holds the following information:
+
+<AccordionGroup>
+  <Accordion title="Basic information">
+    - **Name** and **Nickname**
+    - **Gender** and **Birthday**
+    - **Avatar** — upload an image and use the built-in crop tool to resize it. The recommended minimum size is 48×48 pixels.
+    - **Email**
+    - **Mobile** and **Phone**
+  </Accordion>
+  <Accordion title="Account information">
+    - **Account** — the login username (cannot be changed after creation)
+    - **Password** — admins can reset a user's password at any time
+    - **Role** — functional role in the team
+    - **Privilege Group** — permission group membership
+    - **SVN/Git account** — links the ZenTao account to a source control identity for commit tracking
+    - **Zdoo Account** — links to a Zdoo (ZDOO) single sign-on account if SSO is enabled
+  </Accordion>
+  <Accordion title="Contact information">
+    - **Skype**, **QQ**, **WeChat**, **DingDing**, **Slack**, **WhatsApp**
+    - **Address** and **Zipcode**
+  </Accordion>
+</AccordionGroup>
+
+## Editing a user's profile
+
+To update a user's details, go to **Admin** → **Organization** → **Users**, find the user in the list, and click **Edit**. You can update any field except the account (username). To reset a user's password, click **Reset Password** from the user row.
+
+## Batch creating users
+
+If you need to add multiple users at once, use **Batch Add** from the users list. This opens a multi-row form where you can enter details for several users in a single submission.
+
+## Activating and deactivating users
+
+Users are active by default when created. To prevent a user from logging in without permanently deleting their account:
+
+<Steps>
+  <Step title="Find the user">
+    Go to **Admin** → **Organization** → **Users** and locate the user.
+  </Step>
+  <Step title="Delete (soft-delete) the user">
+    Click **Delete User**. In ZenTao, deleting a user marks them as deleted (`status = delete`) rather than removing their data. Their historical contributions — bugs, tasks, stories — remain intact and attributed to them.
+  </Step>
+</Steps>
+
+<Tip>
+To bring a deleted user back, you can re-create an account with the same username, or contact your ZenTao administrator to restore the record directly in the database.
+</Tip>
+
+## Unlocking a locked account
+
+If a user exceeds the maximum number of failed login attempts, ZenTao locks their account. To unlock it:
+
+1. Go to **Admin** → **Organization** → **Users**.
+2. Find the locked user (their status shows the lock time).
+3. Click **Unlock User**.
+
+## Department structure
+
+ZenTao supports a hierarchical department structure that groups internal users. Departments appear as a tree in the org chart and control which users an admin can manage.
+
+### Creating and editing departments
+
+<Steps>
+  <Step title="Open department management">
+    Go to **Admin** → **Organization** → **Departments**.
+  </Step>
+  <Step title="Add a department">
+    Click to add a top-level department, or select an existing department and add a child beneath it. Enter the department name and save.
+  </Step>
+  <Step title="Reorder departments">
+    Drag departments in the tree to reorder them. The order is saved automatically.
+  </Step>
+  <Step title="Assign users to departments">
+    When creating or editing a user, select their department from the dropdown. You can also manage department members directly from the department view.
+  </Step>
+</Steps>
+
+<Note>
+Department membership is hierarchical. An admin scoped to a specific department can view users in that department and all its sub-departments, but not users in sibling or parent departments.
+</Note>
+
+## Frequently asked questions
+
+<AccordionGroup>
+  <Accordion title="Can I change a user's username after creation?">
+    No. The account (username) field is set once at creation and cannot be edited afterwards. If you need to change it, you must create a new account.
+  </Accordion>
+  <Accordion title="What happens to a deleted user's work items?">
+    All tasks, bugs, stories, and other items remain attributed to the deleted user. Their name is shown with a "(Deleted)" label in ZenTao's interface, and historical data is preserved.
+  </Accordion>
+  <Accordion title="Can outside users be assigned to departments?">
+    Outside users are not assigned to an internal department. They appear in a separate listing and are not included in the department org chart.
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,109 @@
+---
+title: "Projects and executions in ZenTao: sprints and tasks"
+description: "Learn how ZenTao projects, executions, and three delivery models — Scrum, Waterfall, and Kanban — connect your product backlog to day-to-day team work."
+---
+
+In ZenTao, a **Project** is the organizational unit that links one or more products to a delivery team. Inside a project, you create **Executions** — the time-boxed or stage-based containers where stories become tasks and tasks get done. ZenTao supports three project models so you can match your workflow to how your team actually operates.
+
+## Three project models
+
+<Tabs>
+  <Tab title="Scrum">
+    Scrum projects use **sprints** — fixed-length iterations, typically one to four weeks. Each sprint is an execution. You pull stories from the product backlog into a sprint, break them into tasks, and review the results at the end of the sprint.
+
+    - Executions are called **Sprints**.
+    - Stories are linked from a product's backlog.
+    - Tasks are created inside each sprint.
+    - Burn-down charts track progress within a sprint.
+  </Tab>
+  <Tab title="Waterfall">
+    Waterfall projects use **stages** — sequential phases such as Requirements, Design, Development, Testing, and Deployment. Each stage is an execution that must be completed before the next begins.
+
+    - Executions are called **Stages**.
+    - Stages enforce a linear delivery sequence.
+    - Stories and tasks can be assigned to specific stages.
+    - Useful for projects with hard phase gates and sign-offs.
+  </Tab>
+  <Tab title="Kanban">
+    Kanban projects use a continuous-flow execution rather than fixed iterations. Work items move across columns on a board without sprint boundaries.
+
+    - There is one ongoing execution — the Kanban board.
+    - No fixed start or end dates for iterations.
+    - Focus on limiting work in progress and maximizing flow.
+    - Best for support, maintenance, or continuous delivery teams.
+  </Tab>
+</Tabs>
+
+<Note>
+  The project model you choose at creation time determines how executions behave. You select the model when you click **Create Project** using the **Create Project Guide**.
+</Note>
+
+## How stories link to projects and executions
+
+Stories live in a product's backlog. To bring them into active development, you link them to a project and then to a specific execution.
+
+<Steps>
+  <Step title="Create or select a project">
+    Navigate to **Project** in the top navigation and click **Create Project** (or open an existing one). Choose the delivery model (Scrum, Waterfall, or Kanban) and link the relevant products.
+  </Step>
+  <Step title="Create an execution">
+    Inside the project, open **Executions** and click **Create Execution** (Sprint, Stage, or Kanban, depending on your model). Set the start date, end date, and team members.
+  </Step>
+  <Step title="Link stories to the execution">
+    From inside the execution, open the **Story** tab and click **Link Story**. Browse the product backlog and select the stories your team will deliver in this execution. Only stories with **Active** status can be linked.
+  </Step>
+  <Step title="Break stories into tasks">
+    Once stories are linked, click **Create Task** within each story to split the work into individual tasks. Assign each task to a team member, estimate the hours, and set a deadline if needed.
+  </Step>
+  <Step title="Track daily progress">
+    Team members update task progress each day — logging consumed hours and remaining hours. ZenTao recalculates burn-down data automatically.
+  </Step>
+  <Step title="Complete the execution">
+    At the end of the sprint or stage, review what was completed. Close finished tasks, handle any unfinished stories (move them to the next execution or close them), and then close the execution itself.
+  </Step>
+</Steps>
+
+## Task management within executions
+
+Each task inside an execution has the following key fields:
+
+<CardGroup cols={2}>
+  <Card title="Assignee" icon="user">
+    The team member responsible for completing the task.
+  </Card>
+  <Card title="Estimate / Consumed / Remaining" icon="clock">
+    Hour-based tracking fields. ZenTao uses remaining hours to generate burn-down charts.
+  </Card>
+  <Card title="Status" icon="circle-check">
+    Tasks move through: **Wait** → **Doing** → **Done** → **Closed** (or **Pause** / **Cancel**).
+  </Card>
+  <Card title="Type" icon="tag">
+    You can label tasks as Design, Development, Test, Review, or other types to filter by work category.
+  </Card>
+</CardGroup>
+
+### Reassigning and multi-person tasks
+
+A task can be reassigned at any point. If a task needs multiple people, you can break it into child tasks — each assigned to a different team member — while keeping the parent task as a summary.
+
+## Sprint planning and review
+
+<AccordionGroup>
+  <Accordion title="Sprint planning">
+    During sprint planning, you open the execution's **Story** tab and select which backlog stories fit within the team's capacity. Then you — or the assigned developers — create tasks under each story, estimate hours, and confirm assignments before the sprint begins.
+  </Accordion>
+  <Accordion title="Daily standups">
+    ZenTao does not have a dedicated standup view, but team members use the **My Tasks** view and the execution's **Task List** to report what they completed, what they are working on, and any blockers. Updating remaining hours on each task keeps burn-down charts accurate.
+  </Accordion>
+  <Accordion title="Sprint review and retrospective">
+    At sprint end, review the **Story List** to confirm which stories moved to a completed phase. Unfinished stories can be moved to the next execution using the story's **Phase** field or by re-linking them to a new sprint. Close the execution to lock its records.
+  </Accordion>
+</AccordionGroup>
+
+## Execution Kanban view
+
+Every execution — regardless of project model — has an **Execution Kanban** view. This board shows tasks and stories organized by status columns, giving teams a visual way to manage daily work inside a sprint or stage without switching to the standalone Kanban module.
+
+<Tip>
+  Use the Execution Kanban for day-to-day sprint work. Use the standalone **Kanban** module when you need a persistent, product-independent board for continuous flow work.
+</Tip>

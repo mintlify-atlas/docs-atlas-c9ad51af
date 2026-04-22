@@ -1,0 +1,515 @@
+---
+title: "Test Cases API — ZenTao QA testing REST endpoints"
+description: "List, retrieve, and create ZenTao test cases via REST API. Also covers test results, test suites, and test tasks for QA workflow automation."
+---
+
+The Test Cases API gives you programmatic access to ZenTao's quality assurance resources: test cases, test suites, and test tasks. Test cases define the steps and expected outcomes for validating product behavior. Test suites group related cases, and test tasks (also called test requests) track execution runs against a build. All requests require a valid token in the `Token` header — see the [authentication guide](/api/authentication). The base URL for all endpoints is `https://your-zentao.example.com/api.php/v1`.
+
+---
+
+## GET /testcases
+
+Returns a paginated list of test cases visible to the authenticated user.
+
+<ParamField query="product" type="integer">
+  Filter by product ID.
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter by case status. One of `normal`, `wait` (pending review), or `blocked`.
+</ParamField>
+
+<ParamField query="type" type="string">
+  Filter by case type. One of `feature`, `performance`, `security`, `install`, `auto`, or `unit`.
+</ParamField>
+
+<ParamField query="page" type="integer">
+  Page number. Defaults to `1`.
+</ParamField>
+
+<ParamField query="limit" type="integer">
+  Records per page. Defaults to `20`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/testcases?product=1" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Test case ID.
+</ResponseField>
+<ResponseField name="product" type="integer">
+  ID of the product this test case belongs to.
+</ResponseField>
+<ResponseField name="module" type="integer">
+  Module ID within the product.
+</ResponseField>
+<ResponseField name="story" type="integer">
+  ID of the linked story, or `0` if not linked.
+</ResponseField>
+<ResponseField name="title" type="string">
+  Test case title.
+</ResponseField>
+<ResponseField name="type" type="string">
+  Case type.
+</ResponseField>
+<ResponseField name="pri" type="integer">
+  Priority (1 = highest, 4 = lowest).
+</ResponseField>
+<ResponseField name="status" type="string">
+  Case status.
+</ResponseField>
+<ResponseField name="lastRunResult" type="string">
+  Result of the most recent test run. One of `pass`, `fail`, `blocked`, or empty if not yet run.
+</ResponseField>
+<ResponseField name="openedBy" type="string">
+  Creator account name.
+</ResponseField>
+<ResponseField name="openedDate" type="string">
+  Creation date and time (`YYYY-MM-DD HH:MM:SS`).
+</ResponseField>
+
+---
+
+## GET /testcases/:id
+
+Returns a single test case by its ID, including all steps and expected outcomes.
+
+<ParamField path="id" type="integer" required>
+  The test case ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/testcases/50" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Test case ID.
+</ResponseField>
+<ResponseField name="product" type="integer">
+  Product ID.
+</ResponseField>
+<ResponseField name="module" type="integer">
+  Module ID.
+</ResponseField>
+<ResponseField name="story" type="integer">
+  Linked story ID.
+</ResponseField>
+<ResponseField name="title" type="string">
+  Test case title.
+</ResponseField>
+<ResponseField name="precondition" type="string">
+  Prerequisites for running the test case.
+</ResponseField>
+<ResponseField name="type" type="string">
+  Case type.
+</ResponseField>
+<ResponseField name="pri" type="integer">
+  Priority.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Case status.
+</ResponseField>
+<ResponseField name="steps" type="array">
+  List of test steps.
+  <Expandable title="step properties">
+    <ResponseField name="id" type="integer">
+      Step ID.
+    </ResponseField>
+    <ResponseField name="desc" type="string">
+      Step description.
+    </ResponseField>
+    <ResponseField name="expect" type="string">
+      Expected result for this step.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+<ResponseField name="keywords" type="string">
+  Tags associated with this test case.
+</ResponseField>
+<ResponseField name="version" type="integer">
+  Current test case version.
+</ResponseField>
+<ResponseField name="openedBy" type="string">
+  Creator account name.
+</ResponseField>
+<ResponseField name="openedDate" type="string">
+  Creation timestamp.
+</ResponseField>
+<ResponseField name="lastRunner" type="string">
+  Account name of the last person who ran this test case.
+</ResponseField>
+<ResponseField name="lastRunDate" type="string">
+  Date of the most recent test run.
+</ResponseField>
+<ResponseField name="lastRunResult" type="string">
+  Result of the most recent run: `pass`, `fail`, or `blocked`.
+</ResponseField>
+<ResponseField name="reviewedBy" type="string">
+  Reviewer account name.
+</ResponseField>
+<ResponseField name="reviewedDate" type="string">
+  Review date.
+</ResponseField>
+
+---
+
+## POST /testcases
+
+Creates a new test case.
+
+<ParamField body="product" type="integer" required>
+  ID of the product this test case belongs to.
+</ParamField>
+
+<ParamField body="title" type="string" required>
+  Test case title.
+</ParamField>
+
+<ParamField body="steps" type="array">
+  Array of step descriptions. Each element is a string.
+</ParamField>
+
+<ParamField body="expects" type="array">
+  Array of expected results corresponding to each step. Must have the same length as `steps`.
+</ParamField>
+
+<ParamField body="precondition" type="string">
+  Prerequisites for running the test case.
+</ParamField>
+
+<ParamField body="type" type="string">
+  Case type. One of `feature`, `performance`, `security`, `install`, `auto`, or `unit`. Defaults to `feature`.
+</ParamField>
+
+<ParamField body="pri" type="integer">
+  Priority. One of `1`, `2`, `3`, or `4`. Defaults to `3`.
+</ParamField>
+
+<ParamField body="story" type="integer">
+  ID of the story to link this test case to.
+</ParamField>
+
+<ParamField body="module" type="integer">
+  Module ID within the product.
+</ParamField>
+
+<ParamField body="assignedTo" type="string">
+  Account name to assign the test case to.
+</ParamField>
+
+<ParamField body="keywords" type="string">
+  Comma-separated tags.
+</ParamField>
+
+<ParamField body="mailto" type="string">
+  Comma-separated account names to notify by email.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/testcases" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product": 1,
+    "title": "Verify password reset email is sent",
+    "precondition": "User has a registered account with a valid email address.",
+    "steps": [
+      "Navigate to the login page.",
+      "Click Forgot Password.",
+      "Enter registered email and submit."
+    ],
+    "expects": [
+      "Login page loads successfully.",
+      "Forgot Password form is displayed.",
+      "Confirmation message is shown and reset email is received within 60 seconds."
+    ],
+    "type": "feature",
+    "pri": 2,
+    "story": 42
+  }'
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  ID of the newly created test case.
+</ResponseField>
+
+---
+
+## GET /testcases/:id/results
+
+Returns all test run results for the specified test case.
+
+<ParamField path="id" type="integer" required>
+  The test case ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/testcases/50/results" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Result ID.
+</ResponseField>
+<ResponseField name="case" type="integer">
+  Test case ID.
+</ResponseField>
+<ResponseField name="caseVersion" type="integer">
+  Version of the test case when the run was performed.
+</ResponseField>
+<ResponseField name="task" type="integer">
+  ID of the test task in which this result was recorded.
+</ResponseField>
+<ResponseField name="lastRunner" type="string">
+  Account name of the tester.
+</ResponseField>
+<ResponseField name="date" type="string">
+  Run date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="result" type="string">
+  Overall result: `pass`, `fail`, or `blocked`.
+</ResponseField>
+<ResponseField name="steps" type="array">
+  Per-step results.
+  <Expandable title="step result properties">
+    <ResponseField name="stepID" type="integer">
+      Step ID.
+    </ResponseField>
+    <ResponseField name="real" type="string">
+      Actual observed result for this step.
+    </ResponseField>
+    <ResponseField name="result" type="string">
+      Step result: `pass`, `fail`, or `blocked`.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## GET /testsuites
+
+Returns all test suites visible to the authenticated user.
+
+<ParamField query="product" type="integer">
+  Filter by product ID.
+</ParamField>
+
+<ParamField query="page" type="integer">
+  Page number. Defaults to `1`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/testsuites?product=1" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Test suite ID.
+</ResponseField>
+<ResponseField name="product" type="integer">
+  Product ID.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Test suite name.
+</ResponseField>
+<ResponseField name="desc" type="string">
+  Test suite description.
+</ResponseField>
+<ResponseField name="addedBy" type="string">
+  Account name of the creator.
+</ResponseField>
+<ResponseField name="addedDate" type="string">
+  Creation date.
+</ResponseField>
+
+---
+
+## GET /testsuites/:id
+
+Returns a single test suite by its ID, including the list of linked test cases.
+
+<ParamField path="id" type="integer" required>
+  The test suite ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/testsuites/10" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Test suite ID.
+</ResponseField>
+<ResponseField name="product" type="integer">
+  Product ID.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Test suite name.
+</ResponseField>
+<ResponseField name="desc" type="string">
+  Description.
+</ResponseField>
+<ResponseField name="cases" type="array">
+  List of test case IDs in this suite.
+</ResponseField>
+<ResponseField name="addedBy" type="string">
+  Creator account name.
+</ResponseField>
+<ResponseField name="addedDate" type="string">
+  Creation date.
+</ResponseField>
+
+---
+
+## GET /testtasks
+
+Returns a paginated list of test tasks (test requests) visible to the authenticated user.
+
+<ParamField query="project" type="integer">
+  Filter by project ID.
+</ParamField>
+
+<ParamField query="page" type="integer">
+  Page number. Defaults to `1`.
+</ParamField>
+
+<ParamField query="limit" type="integer">
+  Records per page. Defaults to `20`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/testtasks?project=1" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Test task ID.
+</ResponseField>
+<ResponseField name="project" type="integer">
+  Project ID.
+</ResponseField>
+<ResponseField name="product" type="integer">
+  Product ID.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Test task name.
+</ResponseField>
+<ResponseField name="build" type="string">
+  Build being tested.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Test task status. One of `wait`, `doing`, or `done`.
+</ResponseField>
+<ResponseField name="owner" type="string">
+  Account name of the test task owner.
+</ResponseField>
+<ResponseField name="begin" type="string">
+  Planned start date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="end" type="string">
+  Planned end date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="openedBy" type="string">
+  Creator account name.
+</ResponseField>
+<ResponseField name="openedDate" type="string">
+  Creation timestamp.
+</ResponseField>
+
+---
+
+## GET /testtasks/:id
+
+Returns a single test task by its ID, including linked cases and their run status.
+
+<ParamField path="id" type="integer" required>
+  The test task ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/testtasks/15" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Test task ID.
+</ResponseField>
+<ResponseField name="project" type="integer">
+  Project ID.
+</ResponseField>
+<ResponseField name="product" type="integer">
+  Product ID.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Test task name.
+</ResponseField>
+<ResponseField name="desc" type="string">
+  Test task description.
+</ResponseField>
+<ResponseField name="build" type="string">
+  Build being tested.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Test task status.
+</ResponseField>
+<ResponseField name="owner" type="string">
+  Owner account name.
+</ResponseField>
+<ResponseField name="begin" type="string">
+  Planned start date.
+</ResponseField>
+<ResponseField name="end" type="string">
+  Planned end date.
+</ResponseField>
+<ResponseField name="cases" type="array">
+  Test cases linked to this task.
+  <Expandable title="case run properties">
+    <ResponseField name="id" type="integer">
+      Test case ID.
+    </ResponseField>
+    <ResponseField name="title" type="string">
+      Test case title.
+    </ResponseField>
+    <ResponseField name="assignedTo" type="string">
+      Tester account name.
+    </ResponseField>
+    <ResponseField name="lastRunResult" type="string">
+      Latest run result: `pass`, `fail`, `blocked`, or empty.
+    </ResponseField>
+  </Expandable>
+</ResponseField>

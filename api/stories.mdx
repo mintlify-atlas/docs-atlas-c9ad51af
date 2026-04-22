@@ -1,0 +1,401 @@
+---
+title: "Stories API — ZenTao user story lifecycle endpoints"
+description: "Manage user stories in ZenTao via REST API. Create, assign, review, activate, change, close, and recall stories through dedicated lifecycle endpoints."
+---
+
+The Stories API covers the full lifecycle of user stories (software requirements, or SR) in ZenTao. Stories move through statuses such as `draft`, `reviewing`, `active`, `changing`, and `closed`. Each lifecycle transition has its own endpoint so you can automate story workflows from your CI/CD pipelines or external tools. All requests require a valid token in the `Token` header — see the [authentication guide](/api/authentication). The base URL for all endpoints is `https://your-zentao.example.com/api.php/v1`.
+
+---
+
+## GET /stories
+
+Returns a paginated list of all stories visible to the authenticated user.
+
+<ParamField query="status" type="string">
+  Filter by status. One of `draft`, `reviewing`, `active`, `changing`, or `closed`.
+</ParamField>
+
+<ParamField query="product" type="integer">
+  Filter stories by product ID.
+</ParamField>
+
+<ParamField query="page" type="integer">
+  Page number. Defaults to `1`.
+</ParamField>
+
+<ParamField query="limit" type="integer">
+  Records per page. Defaults to `20`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/stories?status=active" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Story ID.
+</ResponseField>
+<ResponseField name="title" type="string">
+  Story title.
+</ResponseField>
+<ResponseField name="product" type="integer">
+  ID of the product this story belongs to.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Story status: `draft`, `reviewing`, `active`, `changing`, or `closed`.
+</ResponseField>
+<ResponseField name="stage" type="string">
+  Development phase. One of `wait`, `planned`, `developing`, `testing`, `verified`, `released`, or `closed`.
+</ResponseField>
+<ResponseField name="pri" type="integer">
+  Priority (1 = highest, 4 = lowest).
+</ResponseField>
+<ResponseField name="estimate" type="number">
+  Estimated effort in hours.
+</ResponseField>
+<ResponseField name="assignedTo" type="string">
+  Account name of the current assignee.
+</ResponseField>
+<ResponseField name="openedBy" type="string">
+  Account name of the story creator.
+</ResponseField>
+<ResponseField name="openedDate" type="string">
+  Creation date and time (`YYYY-MM-DD HH:MM:SS`).
+</ResponseField>
+
+---
+
+## GET /stories/:id
+
+Returns a single story by its ID, including its description and acceptance criteria.
+
+<ParamField path="id" type="integer" required>
+  The story ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/stories/42" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Story ID.
+</ResponseField>
+<ResponseField name="title" type="string">
+  Story title.
+</ResponseField>
+<ResponseField name="product" type="integer">
+  Parent product ID.
+</ResponseField>
+<ResponseField name="module" type="integer">
+  Module ID within the product.
+</ResponseField>
+<ResponseField name="plan" type="string">
+  Comma-separated list of linked plan IDs.
+</ResponseField>
+<ResponseField name="source" type="string">
+  Origin of the story (e.g., `customer`, `user`, `bug`, `market`).
+</ResponseField>
+<ResponseField name="status" type="string">
+  Story status.
+</ResponseField>
+<ResponseField name="stage" type="string">
+  Development phase.
+</ResponseField>
+<ResponseField name="pri" type="integer">
+  Priority.
+</ResponseField>
+<ResponseField name="estimate" type="number">
+  Estimated effort in hours.
+</ResponseField>
+<ResponseField name="spec" type="string">
+  Story description (HTML).
+</ResponseField>
+<ResponseField name="verify" type="string">
+  Acceptance criteria (HTML).
+</ResponseField>
+<ResponseField name="assignedTo" type="string">
+  Current assignee account name.
+</ResponseField>
+<ResponseField name="openedBy" type="string">
+  Creator account name.
+</ResponseField>
+<ResponseField name="openedDate" type="string">
+  Creation timestamp.
+</ResponseField>
+<ResponseField name="reviewedBy" type="string">
+  Account name of the reviewer.
+</ResponseField>
+<ResponseField name="closedBy" type="string">
+  Account name of the person who closed the story.
+</ResponseField>
+<ResponseField name="closedReason" type="string">
+  Reason for closure (e.g., `done`, `duplicate`, `postponed`, `willnotdo`).
+</ResponseField>
+<ResponseField name="version" type="integer">
+  Current story version number.
+</ResponseField>
+
+---
+
+## POST /stories
+
+Creates a new story.
+
+<ParamField body="product" type="integer" required>
+  ID of the product this story belongs to.
+</ParamField>
+
+<ParamField body="title" type="string" required>
+  Story title.
+</ParamField>
+
+<ParamField body="spec" type="string">
+  Story description. Accepts HTML.
+</ParamField>
+
+<ParamField body="verify" type="string">
+  Acceptance criteria. Accepts HTML.
+</ParamField>
+
+<ParamField body="pri" type="integer">
+  Priority. One of `1`, `2`, `3`, or `4`. Defaults to `3`.
+</ParamField>
+
+<ParamField body="estimate" type="number">
+  Estimated effort in hours.
+</ParamField>
+
+<ParamField body="assignedTo" type="string">
+  Account name to assign the story to.
+</ParamField>
+
+<ParamField body="module" type="integer">
+  Module ID within the product.
+</ParamField>
+
+<ParamField body="plan" type="string">
+  Plan ID to link. Use a comma-separated string for multiple plans.
+</ParamField>
+
+<ParamField body="source" type="string">
+  Story source. One of `customer`, `user`, `po`, `market`, `service`, `operation`, `support`, `competitor`, `partner`, `dev`, `tester`, `bug`, `forum`, or `other`.
+</ParamField>
+
+<ParamField body="mailto" type="string">
+  Comma-separated list of account names to notify by email.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/stories" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product": 1,
+    "title": "As a user, I want to reset my password so that I can regain access.",
+    "spec": "<p>User clicks Forgot Password and receives a reset email.</p>",
+    "pri": 2,
+    "assignedTo": "alice"
+  }'
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  ID of the newly created story.
+</ResponseField>
+
+---
+
+## POST /stories/:id/change
+
+Marks a story as changed and records a new version. Use this when the story content has been updated after it was already reviewed or active.
+
+<ParamField path="id" type="integer" required>
+  The story ID.
+</ParamField>
+
+<ParamField body="title" type="string">
+  Updated story title.
+</ParamField>
+
+<ParamField body="spec" type="string">
+  Updated description (HTML).
+</ParamField>
+
+<ParamField body="verify" type="string">
+  Updated acceptance criteria (HTML).
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Comment explaining the change.
+</ParamField>
+
+<Note>
+  Only stories with status `active` can be changed. Stories in `draft`, `reviewing`, or `closed` status will be rejected.
+</Note>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/stories/42/change" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "spec": "<p>Updated description after stakeholder review.</p>",
+    "comment": "Revised scope based on meeting notes."
+  }'
+```
+</CodeGroup>
+
+---
+
+## POST /stories/:id/close
+
+Closes the specified story.
+
+<ParamField path="id" type="integer" required>
+  The story ID.
+</ParamField>
+
+<ParamField body="closedReason" type="string" required>
+  Reason for closing. One of `done`, `subdivided`, `duplicate`, `postponed`, `willnotdo`, `cancel`, or `bydesign`.
+</ParamField>
+
+<ParamField body="duplicateStory" type="integer">
+  If `closedReason` is `duplicate`, provide the ID of the original story here.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/stories/42/close" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"closedReason": "done", "comment": "Implemented in sprint 3."}'
+```
+</CodeGroup>
+
+---
+
+## POST /stories/:id/active
+
+Activates the specified story, transitioning it from `reviewing` or `draft` to `active`.
+
+<ParamField path="id" type="integer" required>
+  The story ID.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/stories/42/active" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"comment": "Approved by product owner."}'
+```
+</CodeGroup>
+
+---
+
+## POST /stories/:id/assign
+
+Assigns the story to a team member.
+
+<ParamField path="id" type="integer" required>
+  The story ID.
+</ParamField>
+
+<ParamField body="assignedTo" type="string" required>
+  Account name of the person to assign the story to.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/stories/42/assign" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"assignedTo": "bob"}'
+```
+</CodeGroup>
+
+---
+
+## POST /stories/:id/review
+
+Records a review result for the specified story.
+
+<ParamField path="id" type="integer" required>
+  The story ID.
+</ParamField>
+
+<ParamField body="reviewResult" type="string" required>
+  Review outcome. One of `pass`, `revert`, `clarify`, or `reject`.
+</ParamField>
+
+<ParamField body="rejectedReason" type="string">
+  Required when `reviewResult` is `reject`. One of `done`, `duplicate`, `postponed`, `willnotdo`, `cancel`, or `bydesign`.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<Tip>
+  Only users listed as reviewers for the story can submit a review. A story becomes `active` when all reviewers have passed it.
+</Tip>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/stories/42/review" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reviewResult": "pass", "comment": "Looks good."}'
+```
+</CodeGroup>
+
+---
+
+## POST /stories/:id/recall
+
+Recalls a story from the review process, reverting it to `draft` status.
+
+<ParamField path="id" type="integer" required>
+  The story ID.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment explaining the recall.
+</ParamField>
+
+<Note>
+  You can only recall a story that is currently `reviewing`. Stories in `active` status have no ongoing review to recall.
+</Note>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/stories/42/recall" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"comment": "Needs additional information before review."}'
+```
+</CodeGroup>

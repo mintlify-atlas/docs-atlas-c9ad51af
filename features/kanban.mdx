@@ -1,0 +1,110 @@
+---
+title: "Kanban boards in ZenTao: spaces, lanes, columns, and cards"
+description: "Use ZenTao's Kanban module to visualize continuous-flow work with boards, swimlanes, and WIP-aware columns — separate from Scrum sprint executions."
+---
+
+ZenTao includes a standalone **Kanban** module that gives you persistent, product-independent boards for visualizing and managing continuous-flow work. Unlike the Execution Kanban inside a Scrum sprint — which is tied to a specific time-boxed iteration — the Kanban module boards live outside the sprint model and are organized into **spaces** that your team can manage independently.
+
+## Kanban concepts
+
+The Kanban module is organized in a hierarchy of four levels:
+
+<CardGroup cols={2}>
+  <Card title="Space" icon="folder">
+    A Kanban space is the top-level container. It groups one or more boards belonging to a team or department. Spaces have types: **private** (invite-only), **cooperation** (shared across teams), and **public** (visible to all users).
+  </Card>
+  <Card title="Board (Kanban)" icon="table-columns">
+    A board lives inside a space and is the primary visual work surface. Each board contains one or more regions. You can create multiple boards in a space for different workflows or workstreams.
+  </Card>
+  <Card title="Region" icon="layer-group">
+    A region (also called a swimlane area) is a horizontal section inside a board. Regions let you separate work by team, product, or any other dimension while keeping it visible on the same board.
+  </Card>
+  <Card title="Lane and column" icon="grip-lines">
+    Within each region, **lanes** (rows) further subdivide work — for example by assignee or priority — and **columns** represent workflow stages such as Backlog, In Progress, Review, and Done.
+  </Card>
+</CardGroup>
+
+### Columns and sub-columns
+
+Columns represent the stages in your workflow. You can add columns to the left or right of an existing column using **Create Column**. ZenTao also supports **split columns** — a parent column can be divided into child columns (sub-stages) to model more granular steps like "In Progress → Development" and "In Progress → Code Review" within a single stage.
+
+You can **archive** a column to hide it from the board without deleting its cards, and **restore** it later if needed.
+
+## Creating a Kanban space and board
+
+<Steps>
+  <Step title="Create a space">
+    Navigate to **Kanban** in the top navigation to open the space list. Click **Create Space** and choose a type: **private** (only invited members can view), **cooperation** (cross-team sharing), or **public** (all users can view). Assign an owner and optionally add team members.
+  </Step>
+  <Step title="Create a board">
+    Inside the space, click **Create Kanban** (or **Create**) to add a new board. Set the board name, owner, and team. You can also copy the layout of an existing board to reuse its region and column structure.
+  </Step>
+  <Step title="Create regions">
+    Inside the board, add regions to separate work by team or workstream. Click **Create Region** and either define a custom layout or copy the structure from another region on the board.
+  </Step>
+  <Step title="Create lanes">
+    Within each region, create lanes to add horizontal rows. Lanes can represent stories, assignees, priorities, or any grouping that makes sense for your team.
+  </Step>
+  <Step title="Create columns">
+    Add columns to represent your workflow stages — for example: **Backlog**, **To Do**, **In Progress**, **Review**, **Done**. Adjust the column order using **Sort Columns** to match your actual process.
+  </Step>
+</Steps>
+
+## Creating and managing Kanban cards
+
+A **card** is the basic unit of work on a Kanban board. Cards can represent tasks, ideas, requests, or any trackable item.
+
+### Creating a card
+
+Open a board, locate the column and lane where the card belongs, and click **Create Card** (or **Batch Create Card** to add several at once). Each card captures:
+
+- **Name** — a short title for the work item.
+- **Assignee** — the team member responsible.
+- **Color** — an optional color label for quick visual identification.
+- Other configurable fields depending on your board settings.
+
+### Moving cards
+
+Drag a card from one column to another to update its workflow status. This is the core Kanban interaction — work flows from left to right as it progresses through stages.
+
+### Board settings and WIP display
+
+From the board's **Setting** menu you can configure:
+
+- **Display Cards** — how many cards to show per column before the column scrolls. Setting a specific number enables visual WIP (work in progress) awareness: when a column is full, it signals the team to pull work through before adding more.
+- **Import Objects** — Kanban boards can be configured to pull in objects from other ZenTao modules (stories, tasks, bugs) rather than creating freeform cards.
+
+<Note>
+  ZenTao does not enforce hard WIP limits automatically, but the **Display Cards** setting provides a visible cap that teams can use as a soft WIP signal. Exceeding the display count causes the column to scroll, making overload immediately apparent.
+</Note>
+
+## When to use Kanban vs. Scrum
+
+<Tabs>
+  <Tab title="Use Kanban when...">
+    - Your team handles continuous, unpredictable work — such as support requests, bug triage, or maintenance.
+    - Work items arrive at irregular intervals and cannot be batched into two-week sprints.
+    - You want to visualize flow and identify bottlenecks without the overhead of sprint planning and retrospectives.
+    - Multiple teams share a board and need to see cross-team dependencies in one place.
+    - You are running a Kanban project type inside ZenTao and want an execution-independent board.
+  </Tab>
+  <Tab title="Use Scrum (execution Kanban) when...">
+    - Your team delivers planned features in fixed-length sprints (one to four weeks).
+    - You need burn-down charts, sprint velocity tracking, and formal sprint retrospectives.
+    - Work items are stories pulled from a product backlog and broken into tasks.
+    - You want the Kanban board tied to a specific sprint so it resets each iteration.
+    - You need tight integration between the board and ZenTao's story and task records.
+  </Tab>
+</Tabs>
+
+<Tip>
+  Many teams use both: Scrum executions with an Execution Kanban for sprint work, and a standalone Kanban board for managing support tickets or cross-sprint coordination tasks that do not fit neatly into a sprint.
+</Tip>
+
+## Space lifecycle
+
+Kanban spaces and boards can be **closed** when a project ends or the board is no longer needed, and **activated** again if work resumes. Closing a space or board hides it from the default view without deleting any data. Deleted spaces and boards are permanently removed, so use close rather than delete if there is any chance you will need the history.
+
+<Warning>
+  Deleting a Kanban space removes all boards, regions, lanes, columns, and cards within it permanently. Close the space instead if you want to preserve the history.
+</Warning>

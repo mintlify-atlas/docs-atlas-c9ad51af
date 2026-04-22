@@ -1,0 +1,246 @@
+---
+title: "Configure webhooks to connect ZenTao with external systems"
+description: "Send outbound event notifications from ZenTao to external endpoints, and receive inbound webhooks from GitLab to keep your toolchain in sync."
+---
+
+ZenTao's webhook system lets you push real-time event notifications to external services whenever something changes in your project — a bug is resolved, a story is updated, a task is assigned. You can also receive inbound webhooks from GitLab so that push events in your repository are reflected in ZenTao automatically.
+
+## Outbound webhooks: notify external systems
+
+ZenTao fires outbound webhooks in response to changes on objects such as stories, bugs, tasks, and test tasks. Each webhook has a target URL and a set of trigger actions you configure.
+
+### Supported object types and trigger actions
+
+The following objects and actions can trigger a webhook notification:
+
+| Object | Trigger actions |
+|--------|----------------|
+| **Product** | opened, edited, closed, undeleted |
+| **Story** | opened, edited, commented, frombug, changed, reviewed, closed, activated |
+| **Product plan** | opened, edited |
+| **Execution** | opened, edited, started, delayed, suspended, closed, activated, undeleted |
+| **Task** | opened, edited, commented, assigned, confirmed, started, finished, paused, canceled, restarted, closed, activated |
+| **Bug** | opened, edited, commented, assigned, confirmed, bugconfirmed, resolved, closed, activated |
+| **Test case** | opened, edited, commented, reviewed, confirmed |
+| **Test task** | opened, edited, started, blocked, closed, activated |
+| **Todo** | opened, edited |
+
+### Webhook types
+
+<CardGroup cols={2}>
+  <Card title="Dingding Robot" icon="robot">
+    Posts messages to a DingTalk group bot. Configure the webhook URL from the DingTalk bot settings.
+  </Card>
+  <Card title="Dingding Notifier" icon="bell">
+    Sends personal DingTalk notifications to individual users. Requires user binding to match ZenTao accounts to DingTalk user IDs.
+  </Card>
+  <Card title="Enterprise WeChat Robot" icon="robot">
+    Posts messages to a WeChat Work group robot using a webhook URL from the WeChat Work admin console.
+  </Card>
+  <Card title="Enterprise WeChat Notifier" icon="bell">
+    Sends personal WeChat Work messages. Requires binding ZenTao users to WeChat Work user IDs via Corp ID and Corp Secret.
+  </Card>
+  <Card title="Feishu Robot" icon="robot">
+    Posts messages to a Feishu (Lark) group bot. Configure the webhook URL from Feishu's bot settings.
+  </Card>
+  <Card title="Feishu Notifier" icon="bell">
+    Sends personal Feishu notifications. Requires binding users via Feishu App ID and App Secret.
+  </Card>
+  <Card title="Others (generic)" icon="plug">
+    Sends an HTTP POST to any custom endpoint. Use this for Slack, custom services, or any system that accepts JSON webhooks.
+  </Card>
+</CardGroup>
+
+---
+
+## Setting up a webhook endpoint
+
+<Steps>
+  <Step title="Open the webhook list">
+    Go to **Admin → System → Webhook** (or navigate directly to the Webhook section in your ZenTao instance). The list shows all configured webhooks with their type, name, and last sent status.
+  </Step>
+  <Step title="Create a webhook">
+    Click **Create**. Fill in the following fields:
+
+    | Field | Description |
+    |-------|-------------|
+    | **Name** | A descriptive label for the webhook (required) |
+    | **Type** | Select the target system (DingTalk Robot, WeChat, Feishu, Others, etc.) |
+    | **Webhook URL** | The HTTPS endpoint that will receive the POST request |
+    | **ZenTao Domain** | Your ZenTao instance's public URL, included in notification payloads so recipients can follow links back |
+    | **Content Type** | The MIME type of the request body sent to the endpoint |
+    | **Sending Type** | **Synchronous** (immediate) or **Asynchronous** (queued via cron) |
+    | **Secret** | For notifier types (DingTalk, WeChat, Feishu), stores app credentials such as App Key / App Secret |
+    | **Product** | Scope the webhook to a specific product — leave empty to trigger on all products |
+    | **Execution** | Scope the webhook to a specific execution — leave empty to trigger on all executions |
+    | **Trigger Action** | The object types and actions that fire this webhook |
+  </Step>
+  <Step title="Select trigger actions">
+    In the **Trigger Action** section, choose which object types and specific actions should fire the webhook. For example, select **Bug → resolved** to notify an external system when a bug is marked as fixed.
+  </Step>
+  <Step title="Save and verify">
+    After saving, the webhook appears in the list. Use the **Log** view on any webhook to inspect the most recent deliveries — you can see the payload sent, the HTTP response received, and the timestamp.
+  </Step>
+</Steps>
+
+<Note>
+  If you choose **Asynchronous** sending, you must enable the `webhook->asyncSend` cron job in **Admin → System → Cron**. Without it, queued notifications are never dispatched. For **Synchronous** sending, no cron is needed.
+</Note>
+
+---
+
+## Webhook payload structure
+
+ZenTao sends a JSON payload to your endpoint for each triggered event. The payload includes the following fields drawn from the object that changed:
+
+| Field | Description |
+|-------|-------------|
+| `objectType` | The type of object that changed (for example, `bug`, `story`, `task`) |
+| `objectID` | The numeric ID of the changed object |
+| `product` | The product the object belongs to |
+| `execution` | The execution (sprint or project iteration) the object belongs to |
+| `action` | The action that triggered the webhook (for example, `resolved`, `opened`) |
+| `actor` | The ZenTao account that performed the action |
+| `date` | The timestamp of the action |
+| `comment` | Any comment submitted with the action |
+| `text` | A human-readable description of the action |
+
+<CodeGroup>
+
+```json Example payload: bug resolved
+{
+  "objectType": "bug",
+  "objectID": 42,
+  "product": "My Product",
+  "execution": "Sprint 3",
+  "action": "resolved",
+  "actor": "jane.dev",
+  "date": "2026-04-22 14:35:00",
+  "comment": "Fixed in commit abc1234",
+  "text": "jane.dev resolved Bug #42"
+}
+```
+
+```json Example payload: story opened
+{
+  "objectType": "story",
+  "objectID": 17,
+  "product": "My Product",
+  "execution": "",
+  "action": "opened",
+  "actor": "product.owner",
+  "date": "2026-04-22 09:10:00",
+  "comment": "",
+  "text": "product.owner created Story #17"
+}
+```
+
+</CodeGroup>
+
+---
+
+## Inbound webhook: GitLab push events
+
+ZenTao accepts inbound webhooks from GitLab at the following API endpoint:
+
+```text
+POST /api.php/v1/gitlab/webhook
+```
+
+When GitLab pushes commits to a repository that ZenTao is tracking, it calls this endpoint. ZenTao processes the push event to sync the new commits, parse commit messages for linked objects (stories, bugs, tasks), and update the repository's last sync time — without waiting for the next scheduled sync cycle.
+
+### Configuring the GitLab webhook
+
+<Steps>
+  <Step title="Find your ZenTao webhook URL">
+    The inbound URL follows this pattern:
+
+    ```text
+    https://zentao.example.com/api.php/v1/gitlab/webhook
+    ```
+
+    When you import a GitLab repository into ZenTao (**DevOps → Repo → Create**), ZenTao registers this webhook on the GitLab project automatically using `updateCodePath`.
+  </Step>
+  <Step title="Verify webhook registration in GitLab">
+    In GitLab, open **Settings → Webhooks** for your project and confirm that ZenTao's URL appears in the list. The webhook should be enabled for **Push events** at minimum.
+  </Step>
+  <Step title="Test the webhook">
+    Use GitLab's **Test → Push events** button to send a test payload to ZenTao. Check the ZenTao webhook log or repository sync log to confirm the event was received.
+  </Step>
+</Steps>
+
+<Note>
+  The GitLab inbound webhook is registered automatically when you import a GitLab repository in ZenTao. You do not need to configure it manually in most cases.
+</Note>
+
+---
+
+## Viewing webhook delivery logs
+
+Every outbound delivery is logged. To inspect delivery history:
+
+1. Go to **Admin → System → Webhook**.
+2. Click **Log** next to the webhook you want to inspect.
+3. Each log entry shows the action that triggered the delivery, the data payload, the result (success or failure), and the timestamp.
+
+Logs are displayed in reverse chronological order (most recent first) and are paginated at 20 entries per page.
+
+---
+
+## Binding users for notifier webhooks
+
+For **Dingding Notifier**, **Enterprise WeChat Notifier**, and **Feishu Notifier** types, ZenTao needs to know which external user ID corresponds to each ZenTao account. Use the **Bind User** action on the webhook to map accounts:
+
+<Steps>
+  <Step title="Open user binding">
+    Click **Bind User** on a notifier-type webhook.
+  </Step>
+  <Step title="Select a department (DingTalk and Feishu)">
+    For DingTalk and Feishu, ZenTao fetches the organization's department tree from the provider's API. Select the department whose members you want to map.
+  </Step>
+  <Step title="Map ZenTao accounts to provider user IDs">
+    ZenTao displays a list of ZenTao users alongside the provider's user list. Select the matching provider user for each ZenTao account and save.
+  </Step>
+</Steps>
+
+---
+
+## Security considerations
+
+<Warning>
+  **Use HTTPS for all webhook endpoints.** ZenTao sends event data including object IDs, actor names, and comments. Sending this data over plain HTTP exposes it to interception.
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="Validate the Secret field">
+    For generic (Others) webhooks, populate the **Secret** field with a shared secret. Validate this value in your receiving endpoint to confirm the request originated from ZenTao and not from an unauthorized source.
+  </Accordion>
+  <Accordion title="Restrict the inbound GitLab webhook URL">
+    The `/api.php/v1/gitlab/webhook` endpoint does not require authentication by default because GitLab must be able to reach it. Restrict access at the network level (for example, allow only your GitLab server's IP) to prevent unauthorized pushes.
+  </Accordion>
+  <Accordion title="Monitor webhook logs for failures">
+    If a delivery fails — for example, because the target endpoint is unreachable or returns a non-2xx status — ZenTao logs the failure. Regularly review the webhook log to catch repeated failures before they cause missed notifications.
+  </Accordion>
+  <Accordion title="Asynchronous delivery and the cron job">
+    Asynchronous webhooks are queued in the database and dispatched by a cron job. Each dispatch loop has a 29-second time budget. If a single delivery takes longer than that, remaining queued items are skipped until the next cron cycle. Avoid slow or unreliable endpoints for high-volume webhooks.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Common use cases
+
+<CardGroup cols={2}>
+  <Card title="Notify Slack on bug creation" icon="bug">
+    Create a generic (Others) webhook with the Slack incoming webhook URL. Set the trigger to **Bug → opened**. Your Slack channel receives a message whenever a new bug is filed.
+  </Card>
+  <Card title="Alert team on story updates" icon="book-open">
+    Trigger a DingTalk Robot webhook on **Story → edited** and **Story → changed** to keep the product team informed of requirement changes in real time.
+  </Card>
+  <Card title="Sync GitLab commits instantly" icon="gitlab">
+    Register the GitLab inbound webhook so that every push to your repository is reflected in ZenTao immediately, without waiting for the next scheduled sync.
+  </Card>
+  <Card title="Track build completion" icon="circle-check">
+    Use a generic webhook scoped to **Test task → closed** to notify your release channel when a test run finishes.
+  </Card>
+</CardGroup>

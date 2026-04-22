@@ -1,0 +1,135 @@
+---
+title: "Bug tracking in ZenTao: lifecycle, fields, and resolutions"
+description: "Track bugs from first report to final close in ZenTao. Learn the bug lifecycle, status transitions, severity and priority fields, and all resolution types."
+---
+
+ZenTao's bug tracker is built around the full quality assurance workflow — from the moment a tester or user reports a defect to the moment a developer resolves it and a QA engineer confirms the fix. Every bug in ZenTao belongs to a product, can be linked to a project and execution, and carries enough structured metadata for teams to triage, prioritize, and audit their defect history.
+
+## Bug lifecycle
+
+Bugs move through a defined set of statuses. The diagram below shows the typical transitions:
+
+<Steps>
+  <Step title="Report">
+    A tester or team member clicks **Report Bug** and fills in the bug title, reproduction steps, severity, priority, affected product, and optionally assigns it to a developer. The bug is created with **Active** status.
+  </Step>
+  <Step title="Confirm">
+    A developer or team lead clicks **Confirm** to verify the bug is reproducible and valid. The **Confirmed** flag changes from `unconfirmed` to `confirmed`. Confirmation does not change the status — the bug remains **Active**.
+  </Step>
+  <Step title="Assign">
+    Use **Assign** to route the bug to the developer responsible for the fix. You can assign at any point during the bug's life. The **AssignTo** field records who currently owns it.
+  </Step>
+  <Step title="Resolve">
+    The developer clicks **Resolve** and selects a **Resolution** (see the full list below). The bug status changes to **Resolved**. The developer also records which build the fix was included in.
+  </Step>
+  <Step title="Close">
+    After a QA engineer verifies the fix (or the resolution is accepted), they click **Close**. The bug status changes to **Closed**. Closed bugs are excluded from active bug lists by default.
+  </Step>
+  <Step title="Reopen (Activate)">
+    If the fix fails verification or the bug regresses, the tester clicks **Activate** to reopen it. The bug returns to **Active** status. Each reopen increments the **Activation** counter, making it easy to spot frequently regressing issues.
+  </Step>
+</Steps>
+
+## Bug statuses
+
+ZenTao uses three formal statuses for bugs:
+
+| Status | Description |
+|--------|-------------|
+| **Active** | The bug is open and unresolved. This is the default state after reporting. |
+| **Resolved** | A developer has applied a resolution. Awaiting verification by QA. |
+| **Closed** | The bug is confirmed fixed or otherwise handled and removed from the active queue. |
+
+<Note>
+  The **Confirmed** field is separate from **Status**. A bug can be **Active** and still `unconfirmed` — meaning no one has yet verified it is reproducible. Teams that require formal triage use the **Confirm** action before assigning.
+</Note>
+
+## Bug fields
+
+When reporting or editing a bug, you work with the following fields:
+
+<CardGroup cols={2}>
+  <Card title="Severity" icon="triangle-exclamation">
+    A numeric scale from **1** (most severe) to **4** (least severe). Severity describes how badly the bug affects the product — for example, a data-loss bug is severity 1, a cosmetic issue is severity 4.
+  </Card>
+  <Card title="Priority" icon="flag">
+    A numeric scale from **1** (highest priority) to **4** (lowest priority). Priority describes how urgently the bug should be fixed relative to other work.
+  </Card>
+  <Card title="Type" icon="tag">
+    Classifies the nature of the defect: **CodeError**, **Configuration**, **Installation**, **Security**, **Performance**, **Standard Specification**, **TestScript**, **DesignDefect**, or **Others**.
+  </Card>
+  <Card title="Repro Steps" icon="list-ol">
+    The structured reproduction steps field. ZenTao provides a template with **Steps**, **Results**, and **Expectations** sections to ensure reporters capture enough detail.
+  </Card>
+  <Card title="AssignTo" icon="user">
+    The team member currently responsible for the bug. Can be changed at any time using the **Assign** action.
+  </Card>
+  <Card title="Deadline" icon="calendar-xmark">
+    An optional due date. Bugs past their deadline appear in the **Overdue** filter.
+  </Card>
+  <Card title="Open Build" icon="hammer">
+    The build in which the bug was first observed. Helps teams trace when a defect was introduced.
+  </Card>
+  <Card title="Resolved Build" icon="circle-check">
+    The build in which the fix was included. Set when a developer resolves the bug.
+  </Card>
+</CardGroup>
+
+### Linking bugs to products, projects, and builds
+
+Each bug must be linked to a **Product**. Optionally, you can also link it to a **Project** and an **Execution** (sprint or iteration). These associations let you:
+
+- Filter bugs by the project or sprint where they were found.
+- Report on defect density per execution or build.
+- Track which bugs are blocking a specific release.
+
+You can also link a bug to a **Story** (if the bug was caused by a story change) and convert a bug into a story using **Convert to Story** if the report reveals a missing or misunderstood requirement.
+
+## Resolution types
+
+When a developer resolves a bug, they must choose one of the following resolutions:
+
+<AccordionGroup>
+  <Accordion title="Resolved — the fix was applied">
+    The bug was reproduced and a code or configuration fix was applied. The bug moves to **Resolved** and waits for QA verification.
+  </Accordion>
+  <Accordion title="As Designed — behavior is intentional">
+    The reported behavior matches the product specification. No fix is needed. This resolution closes or resolves the report without a code change.
+  </Accordion>
+  <Accordion title="Duplicate — reported before">
+    The same defect was already reported in another bug. The **Duplicated Bug** field lets you link to the original report so reviewers can track the canonical issue.
+  </Accordion>
+  <Accordion title="Irreproducible — cannot be replicated">
+    The developer was unable to reproduce the bug using the provided steps. The report may be resolved without a fix, or the reporter can provide additional details and activate it again.
+  </Accordion>
+  <Accordion title="External — caused by a dependency">
+    The root cause lies outside the team's codebase — for example, in a third-party library, operating system, or infrastructure component.
+  </Accordion>
+  <Accordion title="Postponed — deferred to a later cycle">
+    The team acknowledges the bug but will not fix it in the current release. Postponed bugs remain visible in the **Postponed** filter.
+  </Accordion>
+  <Accordion title="Will not fix — accepted risk">
+    The team has decided not to fix this bug. This is different from postponed — it signals a deliberate acceptance of the defect.
+  </Accordion>
+  <Accordion title="Convert to Story — requirement gap">
+    The bug reveals a missing or misunderstood requirement. Resolving with this option converts the bug into a new user story in the product backlog.
+  </Accordion>
+</AccordionGroup>
+
+## Bug reports and charts
+
+ZenTao generates built-in bug reports accessible from the **Report** action on the bug list. Available report types include:
+
+- Bugs per execution, build, or module
+- Reported, resolved, and closed bugs per day
+- Bugs per severity, priority, type, status, or resolution
+- Bug assignment distribution
+- Activation frequency (bugs reopened most often)
+
+<Tip>
+  Use the **Activation** counter to find chronically regressing bugs. A high activation count on a bug often signals an incomplete fix or a deeper architectural issue.
+</Tip>
+
+<Warning>
+  Closing a bug does not automatically verify the fix. Always have a QA engineer verify the resolved build before closing, unless your team has agreed on a different process.
+</Warning>

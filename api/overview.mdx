@@ -1,0 +1,180 @@
+---
+title: "ZenTao REST API: endpoints, versioning, and responses"
+description: "Explore ZenTao's REST API v1 and v2 base URLs, available resource endpoints, JSON response formats, pagination, and HTTP error codes."
+---
+
+ZenTao exposes a REST API that lets you read and write project data programmatically — create bugs, update stories, manage tasks, and more. Two versions of the API are available: v1 is a direct resource-based API, while v2 adds redirect-based routing and richer, more selective response shapes.
+
+## Base URLs
+
+All API requests go through `api.php` at the root of your ZenTao installation:
+
+| Version | Base URL |
+|---------|----------|
+| v1 | `https://your-zentao-instance/api.php/v1/` |
+| v2 | `https://your-zentao-instance/api.php/v2/` |
+
+<Note>
+Replace `your-zentao-instance` with the hostname of your self-hosted ZenTao deployment. Both versions are available on the same installation.
+</Note>
+
+## API v1 vs API v2
+
+Both versions are available simultaneously and share the same authentication mechanism. The key differences are:
+
+**API v1** returns responses wrapped in a consistent envelope:
+
+```json
+{
+  "status": "success",
+  "data": "{ ... }",
+  "md5": "abc123"
+}
+```
+
+The `data` field is a JSON-encoded string. Parse it to access the resource data.
+
+**API v2** uses redirect-based routing — some endpoints redirect to an underlying ZenTao module URL before returning the response. Responses in v2 are more targeted: the route definition specifies exactly which fields are extracted from the view, such as `product,dynamics,members` or `stories(array),pager`. The `status` field is always included in v2 responses.
+
+Use v2 when you need structured, predictable response shapes with related data included. Use v1 for simpler CRUD operations against individual resources.
+
+## Available resources
+
+ZenTao's API covers the full project lifecycle. The table below lists the major resource groups and example endpoints.
+
+| Resource | Example endpoint (v1) |
+|----------|----------------------|
+| Tokens (auth) | `POST /api.php/v1/tokens` |
+| Products | `GET /api.php/v1/products` |
+| Programs | `GET /api.php/v1/programs` |
+| Projects | `GET /api.php/v1/projects` |
+| Executions | `GET /api.php/v1/executions` |
+| Stories | `GET /api.php/v1/stories` |
+| Tasks | `GET /api.php/v1/tasks` |
+| Bugs | `GET /api.php/v1/bugs` |
+| Test cases | `GET /api.php/v1/testcases` |
+| Builds | `GET /api.php/v1/builds` |
+| Releases | `GET /api.php/v1/releases` |
+| Todos | `GET /api.php/v1/todos` |
+| Users | `GET /api.php/v1/users` |
+| Departments | `GET /api.php/v1/departments` |
+| Docs | `GET /api.php/v1/docs` |
+| Repos | `GET /api.php/v1/repos` |
+| Meetings | `GET /api.php/v1/meetings` |
+| Risks | `GET /api.php/v1/risks` |
+| Webhooks (via GitLab) | `POST /api.php/v1/gitlab/webhook` |
+
+Most resources support sub-resource filtering. For example:
+
+- `GET /api.php/v1/products/:id/stories` — stories for a product
+- `GET /api.php/v1/projects/:id/bugs` — bugs for a project
+- `GET /api.php/v1/executions/:id/tasks` — tasks for an execution
+
+## Response format
+
+All responses are JSON. Successful responses include a `status` field set to `"success"`. Error responses include `status: "fail"` and a message describing the problem.
+
+A typical v1 list response looks like this:
+
+```json
+{
+  "status": "success",
+  "data": "{\"bugs\":[{\"id\":1,\"title\":\"Login fails on mobile\",\"status\":\"active\"}]}",
+  "md5": "d41d8cd98f00b204e9800998ecf8427e"
+}
+```
+
+A typical v2 list response (where the route specifies `bugs(array),pager`) looks like:
+
+```json
+{
+  "status": "success",
+  "bugs": [
+    { "id": 1, "title": "Login fails on mobile", "status": "active" }
+  ],
+  "pager": {
+    "recTotal": 42,
+    "recPerPage": 20,
+    "pageID": 1
+  }
+}
+```
+
+## Pagination
+
+Paginated endpoints in v2 return a `pager` object alongside the resource array:
+
+| Field | Description |
+|-------|-------------|
+| `recTotal` | Total number of records matching the query |
+| `recPerPage` | Number of records returned per page |
+| `pageID` | Current page number (1-indexed) |
+
+To fetch a specific page, pass `pageID` and `recPerPage` as query parameters:
+
+```
+GET /api.php/v2/projects?pageID=2&recPerPage=50
+```
+
+## Error handling
+
+ZenTao uses standard HTTP status codes:
+
+| Status code | Meaning |
+|-------------|---------|
+| `200 OK` | Request succeeded |
+| `201 Created` | Resource was created (e.g., token issued) |
+| `204 No Content` | Request succeeded with no response body (e.g., OPTIONS) |
+| `400 Bad Request` | Invalid request — check the error message for details |
+| `401 Unauthorized` | Missing or invalid authentication token |
+| `404 Not Found` | The requested resource does not exist |
+
+Error responses include an `error` field with a description:
+
+```json
+{
+  "error": "The login name or password is wrong."
+}
+```
+
+## Quick example
+
+The following request fetches all products from a ZenTao instance using API v1:
+
+```bash
+curl https://your-zentao-instance/api.php/v1/products \
+  -H "Token: YOUR_TOKEN_HERE"
+```
+
+<Tip>
+Get a token by posting your credentials to `/api.php/v1/tokens`. See the [authentication guide](/api/authentication) for details.
+</Tip>
+
+## Explore resources
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Get an API token and learn how to authenticate requests.
+  </Card>
+  <Card title="Products" icon="box" href="/api/products">
+    Manage products, plans, and releases.
+  </Card>
+  <Card title="Projects" icon="folder" href="/api/projects">
+    Work with projects, executions, and members.
+  </Card>
+  <Card title="Stories" icon="book" href="/api/stories">
+    Create and update user stories.
+  </Card>
+  <Card title="Tasks" icon="list-check" href="/api/tasks">
+    Assign, start, and close tasks.
+  </Card>
+  <Card title="Bugs" icon="bug" href="/api/bugs">
+    Report, confirm, resolve, and close bugs.
+  </Card>
+  <Card title="Test cases" icon="vial" href="/api/test-cases">
+    Manage test cases and test results.
+  </Card>
+  <Card title="Webhooks" icon="plug" href="/integrations/webhooks">
+    Connect ZenTao events to external systems via webhooks.
+  </Card>
+</CardGroup>

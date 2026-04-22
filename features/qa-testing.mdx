@@ -1,0 +1,128 @@
+---
+title: "QA and testing in ZenTao: test cases, tasks, and reports"
+description: "Manage QA in ZenTao — write test cases, organize test runs with test tasks, generate reports, and link results back to stories and bugs."
+---
+
+ZenTao provides a complete QA workflow inside the same platform where you manage stories and bugs. You write **test cases** against your product, group them into **test tasks** (organized test runs), capture the results, and generate **test reports** — all without switching tools. Every test case can be linked to the story it covers and to any bugs it discovers, keeping your quality data connected to your delivery data.
+
+## Test cases
+
+A test case in ZenTao describes a single scenario you want to verify. Test cases belong to a product and are organized into modules using the same module tree that stories use.
+
+### Creating a test case
+
+Navigate to the **QA** tab, select your product, and click **Create Case**. Each test case captures:
+
+- **Title** — a short description of the scenario.
+- **Type** — functional, performance, security, or other categories.
+- **Priority** — how critical it is to run this case.
+- **Pre-condition** — the system state required before the test begins.
+- **Steps** — a numbered list of actions to perform and the expected result for each step.
+- **Linked Story** — the user story this case verifies (optional but recommended).
+
+<Tip>
+  Write one test case per discrete scenario. Avoid combining multiple independent behaviors into a single case — it makes failure analysis harder and reduces the value of per-case pass/fail metrics.
+</Tip>
+
+### Test case types and suites
+
+ZenTao lets you browse test cases by module, by linked story, by type, or by whether a case has been linked to a test task. You can filter for **Stories without cases** to identify stories that still need test coverage before a release.
+
+<Note>
+  Test cases are versioned in ZenTao. When a linked story changes, ZenTao records the case version and the story version together so you can tell whether a case was written against the current or a previous version of the requirement.
+</Note>
+
+## Test tasks
+
+A **test task** (also called a test request) is a planned test run — a collection of test cases assigned to testers for a specific build and time period. Test tasks are the mechanism that turns a library of test cases into an actionable QA sprint.
+
+### Creating a test task
+
+<Steps>
+  <Step title="Navigate to test tasks">
+    Under the **QA** tab, open **Test Task** for the relevant product and click **Create Test Task**.
+  </Step>
+  <Step title="Set the test task details">
+    Give the test task a name, set the target **Build** you are testing, assign a **Owner** responsible for the run, and set the start and end dates.
+  </Step>
+  <Step title="Link test cases">
+    Add the test cases you want to run in this task. You can link cases from the product's case library by module, story, or keyword. Cases linked to the same story as bugs in the target build are good candidates.
+  </Step>
+  <Step title="Assign cases to testers">
+    Each linked case can be assigned to a specific tester. This lets you distribute the test run across multiple QA team members.
+  </Step>
+  <Step title="Run the test cases">
+    Testers open the test task, work through their assigned cases, and record a result for each step: **Pass**, **Fail**, or **Block**. If a case fails, the tester can create a bug directly from the failure — the bug is automatically linked to the case and the build.
+  </Step>
+  <Step title="Close the test task">
+    After all cases are executed and bugs are filed, the test task owner reviews the results and closes the task. The pass rate and bug count are recorded in the task summary.
+  </Step>
+</Steps>
+
+### Test task statuses
+
+| Status | Meaning |
+|--------|---------|
+| **Wait** | The test task is created but testing has not started. |
+| **Doing** | Testing is in progress. |
+| **Done** | All cases have been executed and results recorded. |
+| **Closed** | The test task is finalized and locked. |
+
+## Linking test cases to stories and bugs
+
+Every test case can reference the user story it covers. This two-way link gives you:
+
+- **Story coverage view** — from a story, you can see all linked cases and whether they passed in the latest test task.
+- **Bug origin** — bugs filed from a failed test case carry a reference to both the case and the test task, giving developers full context.
+- **Case-to-bug traceability** — from a test case, you can see all bugs ever filed against it.
+
+<CardGroup cols={2}>
+  <Card title="Story → Cases" icon="link">
+    Each story shows a **Cases** count. Open the story to see which test cases cover it and their latest result.
+  </Card>
+  <Card title="Case → Bugs" icon="bug">
+    Each test case shows a **Bugs** count. Bugs created from a case are automatically linked so you can track all defects found by a specific scenario.
+  </Card>
+</CardGroup>
+
+## Test reports
+
+ZenTao generates test reports automatically from the data captured in test tasks. You can access reports from the **Report** action on the test task list.
+
+Available report charts include:
+
+- Cases per result (pass, fail, block) for a test task
+- Cases per module or tester
+- Bug count per severity within a test task
+- Pass rate trends across multiple builds
+
+<Note>
+  Test reports pull data from closed test tasks. Keep your test tasks up to date and close them promptly after runs complete to ensure report accuracy.
+</Note>
+
+## QA workflow from story to release
+
+<Steps>
+  <Step title="Story acceptance criteria">
+    When a story is created, the **Acceptance** field records the acceptance criteria a QA engineer will use to write test cases. Review this field before writing cases to ensure alignment with the product owner's intent.
+  </Step>
+  <Step title="Write test cases">
+    After the story is **Active** and development begins, QA writes test cases and links them to the story. Cases can be written before development is complete — this is the basis of shift-left testing.
+  </Step>
+  <Step title="Create a test task for the build">
+    When a build is ready, create a test task targeting that build, link the relevant cases, and assign testers.
+  </Step>
+  <Step title="Execute and file bugs">
+    Run the test cases. File bugs for any failures. Bugs are automatically linked to the failed case and the build under test.
+  </Step>
+  <Step title="Verify bug fixes">
+    After developers resolve bugs, re-run the failing cases in a regression test task against the fix build. Confirm that the bug is resolved and close it.
+  </Step>
+  <Step title="Approve the release">
+    Once the test task is closed with an acceptable pass rate and no open critical bugs, the product manager can create a **Release** linking the verified build to the product. Stories in the release move to the **Released** phase.
+  </Step>
+</Steps>
+
+<Warning>
+  A test task is tied to a specific **Build**. If a new build is produced mid-task (for example, a hotfix build), create a new test task for the new build rather than updating the existing one. This keeps your test history clean and auditable.
+</Warning>

@@ -1,0 +1,177 @@
+---
+title: "Authenticating with the ZenTao REST API using tokens"
+description: "Exchange your ZenTao credentials for a session token, pass it in the Token header on every request, and handle 401 errors and account lockouts."
+---
+
+ZenTao's API uses token-based authentication. You exchange your username and password for a token, then include that token in every subsequent request. The token represents your session on the server, so any request made with it has the same permissions as your account.
+
+## Get a token
+
+Send a `POST` request to `/api.php/v1/tokens` with your account credentials in the request body.
+
+<Steps>
+  <Step title="Send your credentials">
+    POST to the tokens endpoint with your `account` and `password`:
+
+    <CodeGroup>
+      ```bash curl
+      curl -X POST https://your-zentao-instance/api.php/v1/tokens \
+        -H "Content-Type: application/json" \
+        -d '{"account": "admin", "password": "your-password"}'
+      ```
+
+      ```python Python
+      import requests
+
+      response = requests.post(
+          "https://your-zentao-instance/api.php/v1/tokens",
+          json={"account": "admin", "password": "your-password"}
+      )
+      token = response.json()["token"]
+      ```
+
+      ```javascript JavaScript
+      const response = await fetch(
+        "https://your-zentao-instance/api.php/v1/tokens",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ account: "admin", password: "your-password" }),
+        }
+      );
+      const { token } = await response.json();
+      ```
+    </CodeGroup>
+
+    ### Request parameters
+
+    <ParamField body="account" type="string" required>
+      Your ZenTao username.
+    </ParamField>
+
+    <ParamField body="password" type="string">
+      Your ZenTao password. Required unless you are using `authKey`.
+    </ParamField>
+
+  </Step>
+
+  <Step title="Receive the token">
+    A successful response returns HTTP `201 Created` with a `token` field:
+
+    ```json
+    {
+      "token": "abc123def456ghi789"
+    }
+    ```
+
+    ### Response fields
+
+    <ResponseField name="token" type="string">
+      The session token to use in all subsequent API requests.
+    </ResponseField>
+
+    Store this token securely. Treat it like a password — anyone with the token can make API requests with your account's permissions.
+  </Step>
+
+  <Step title="Use the token in requests">
+    Pass the token in the `Token` request header for all authenticated endpoints:
+
+    <CodeGroup>
+      ```bash curl
+      curl https://your-zentao-instance/api.php/v1/products \
+        -H "Token: abc123def456ghi789"
+      ```
+
+      ```python Python
+      import requests
+
+      headers = {"Token": "abc123def456ghi789"}
+      response = requests.get(
+          "https://your-zentao-instance/api.php/v1/products",
+          headers=headers
+      )
+      ```
+
+      ```javascript JavaScript
+      const response = await fetch(
+        "https://your-zentao-instance/api.php/v1/products",
+        {
+          headers: { Token: "abc123def456ghi789" },
+        }
+      );
+      ```
+    </CodeGroup>
+
+  </Step>
+</Steps>
+
+## Passing the token as a query parameter
+
+If you cannot set request headers (for example, in some webhook or redirect scenarios), you can pass the token as a query parameter named `zentaosid`:
+
+```bash
+curl "https://your-zentao-instance/api.php/v1/products?zentaosid=abc123def456ghi789"
+```
+
+<Warning>
+Avoid passing tokens in URLs when possible. URLs are often logged by web servers, proxies, and browser history. Use the `Token` header whenever you can.
+</Warning>
+
+## Token expiry and sessions
+
+The token returned by `/tokens` is a server-side session identifier. Sessions are tied to your ZenTao server's session configuration. If your session expires or is invalidated — for example, if you log out through the ZenTao web interface while using the same account — your token will stop working and you will need to request a new one.
+
+<Tip>
+If you receive a `401 Unauthorized` response on a request that previously worked, your session has likely expired. Re-authenticate by posting to `/api.php/v1/tokens` again.
+</Tip>
+
+## Authentication errors
+
+The tokens endpoint returns `400 Bad Request` when credentials are invalid. The `error` field describes the problem.
+
+### Invalid credentials
+
+```json
+{
+  "error": "The login name or password is wrong."
+}
+```
+
+### Account locked
+
+After several consecutive failed login attempts, ZenTao locks the account temporarily. The error message will tell you how long the lockout lasts:
+
+```json
+{
+  "error": "Login failed. The account is locked for 10 minutes."
+}
+```
+
+### Lock warning
+
+When you are close to the lockout threshold, ZenTao warns you how many attempts remain:
+
+```json
+{
+  "error": "Login failed. You have 2 attempts remaining before your account is locked."
+}
+```
+
+### Unauthorized request
+
+If you make a request to a protected endpoint without a valid token, or with an expired token, you receive:
+
+**HTTP 401 Unauthorized**
+
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+## Security recommendations
+
+- Store your token in an environment variable or secret manager, not in source code.
+- Use HTTPS for all API requests to prevent the token from being intercepted in transit.
+- Use an account with the minimum permissions needed for your integration.
+- Re-request a token programmatically when you receive a `401` rather than caching tokens indefinitely.

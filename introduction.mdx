@@ -1,0 +1,103 @@
+---
+title: "Introduction to ZenTao: agile project management"
+description: "Learn what ZenTao is, who it's built for, the three management methodologies it supports, and the core concepts that structure your work."
+---
+
+ZenTao is a comprehensive, open-source project management platform built specifically for software development teams. First released in 2009, it unifies product planning, sprint execution, bug tracking, quality assurance, document management, and DevOps tooling in a single self-hosted application. Because you run ZenTao on your own infrastructure, your team retains full ownership of its data and workflows — no vendor lock-in, no usage caps.
+
+## Who ZenTao is for
+
+ZenTao is designed to coordinate the three primary roles in a software team: product owners who define requirements, developers who build features, and testers who verify quality. Each role gets a dedicated workspace while sharing a common view of progress, making it easier to track issues and improvements across the entire delivery cycle.
+
+Teams ranging from small startups to large enterprises — including organizations in finance, telecoms, manufacturing, and software development — use ZenTao to improve transparency, streamline communication, and increase delivery efficiency.
+
+## Management methodologies
+
+ZenTao is built around three industry-standard methodologies. You choose the model that fits your team's way of working, and ZenTao adapts accordingly.
+
+<CardGroup cols={3}>
+  <Card title="Scrum" icon="arrows-spin">
+    Adaptable and flexible, the Scrum model is ideal for software development projects that require rapid iterations. ZenTao's Scrum support includes sprints, story points, burndown charts, and execution tracking.
+  </Card>
+  <Card title="Waterfall" icon="bars-staggered">
+    The Waterfall model emphasizes stage division and strict process control. It is best suited for projects that are well defined upfront with minimal scope changes.
+  </Card>
+  <Card title="Kanban" icon="columns-3">
+    The Kanban model focuses on value flow and visualization. It works well for teams that need transparent, continuously flowing work with efficient handoffs between stages.
+  </Card>
+</CardGroup>
+
+## Editions
+
+ZenTao is available in three editions. This documentation covers the Open Source edition.
+
+<CardGroup cols={3}>
+  <Card title="Open Source" icon="code-branch">
+    Free and licensed under AGPL and ZPL. Includes the full core feature set: product management, project management, bug tracking, QA, DevOps integrations, and document management.
+  </Card>
+  <Card title="Biz" icon="building">
+    A commercial edition that extends Open Source with operation and maintenance management, OA office management, feedback management, document version control, and online preview capabilities.
+  </Card>
+  <Card title="Max" icon="chart-line">
+    The enterprise edition. Adds process control and definition, project measurement, issue management, risk management, quality assurance reporting, and CMMI standards support.
+  </Card>
+</CardGroup>
+
+<Note>
+  ZenTao Cloud is also available as a SaaS option for teams that prefer not to self-host. It requires no maintenance and updates automatically.
+</Note>
+
+## Core concepts
+
+Understanding how ZenTao organizes work makes everything else easier to follow. The platform uses six primary objects, each with a distinct role.
+
+### Products
+
+A **Product** represents a deliverable your team builds and maintains. Products contain the backlog of user stories and are managed by product owners. You can run multiple products in parallel, each with its own set of stories, plans, and releases.
+
+### Projects
+
+A **Project** organizes the people, time, and resources needed to complete work. Projects are linked to one or more products and provide the management layer above executions. A project can span multiple sprints or phases.
+
+### Stories
+
+A **Story** is a user requirement attached to a product. Stories capture what needs to be built from the user's perspective. During project planning, stories are pulled from the product backlog and assigned to an execution (sprint or phase) to be built.
+
+### Tasks
+
+A **Task** is the unit of developer work within an execution. Tasks are broken out of stories, assigned to individuals, and tracked with estimated and actual hours. They progress through states from "not started" to "done."
+
+### Bugs
+
+A **Bug** represents a defect found during testing or by users. Bugs go through a lifecycle: opened by a tester, confirmed, assigned to a developer, resolved, and then verified closed. Bug tracking ties directly to products and executions.
+
+### Executions
+
+An **Execution** is the time-boxed unit of work within a project — a sprint in Scrum terms, or a phase in Waterfall. Executions contain the stories and tasks your team commits to completing within a defined period. Burndown charts and progress reports are generated at the execution level.
+
+## Key capabilities
+
+<CardGroup cols={2}>
+  <Card title="Product and story management" icon="box">
+    Maintain a structured backlog of user stories organized by product plan and release. Link stories to executions and track their status from draft through finished.
+  </Card>
+  <Card title="Bug tracking" icon="bug">
+    Report, confirm, assign, resolve, and verify bugs with a full lifecycle workflow. Link bugs to builds, test cases, and stories for complete traceability.
+  </Card>
+  <Card title="QA and test management" icon="flask">
+    Build test suites and test cases, run test tasks against builds, and generate test reports to measure coverage and quality.
+  </Card>
+  <Card title="DevOps integrations" icon="gear">
+    Connect Git, GitLab, Gitea, Gogs, and SVN repositories, Jenkins pipelines, and CI/CD workflows directly from within ZenTao.
+  </Card>
+  <Card title="Document management" icon="file">
+    Store and version project documentation, API docs, and knowledge base articles alongside your product and project data.
+  </Card>
+  <Card title="Data visualization and metrics" icon="chart-bar">
+    Track velocity, burndown, and project health with built-in charts and reports. The Biz and Max editions add advanced BI dashboards.
+  </Card>
+</CardGroup>
+
+## Supported languages
+
+ZenTao ships with interface translations for Simplified Chinese, Traditional Chinese, English, German, and French.

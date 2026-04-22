@@ -1,0 +1,107 @@
+{
+  "projectType": "saas",
+  "projectName": "ZenTao",
+  "projectDescription": "ZenTao is an open-source, self-hosted agile project management platform supporting Scrum, Waterfall, and Kanban, with integrated bug tracking, QA, DevOps, and documentation management.",
+  "theme": "maple",
+  "primaryColor": "#23a5f6",
+  "lightColor": "#34d6f5",
+  "darkColor": "#9a9a9a",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/product-management",
+              "features/project-management",
+              "features/bug-tracking",
+              "features/qa-testing",
+              "features/kanban"
+            ]
+          },
+          {
+            "group": "DevOps & Integrations",
+            "pages": [
+              "integrations/git-integration",
+              "integrations/ci-cd",
+              "integrations/webhooks"
+            ]
+          },
+          {
+            "group": "Administration",
+            "pages": [
+              "admin/user-management",
+              "admin/permissions",
+              "admin/configuration",
+              "admin/extensions"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview",
+              "api/authentication"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "api/products",
+              "api/projects",
+              "api/stories",
+              "api/tasks",
+              "api/bugs",
+              "api/test-cases"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Scrum, Waterfall, and Kanban project management methodologies",
+    "Integrated bug tracking with lifecycle management",
+    "Quality assurance with test cases, test suites, and test reports",
+    "Product and story management with review workflows",
+    "DevOps integration with Git, GitLab, Gitea, Jenkins, and CI/CD pipelines",
+    "REST API v1 and v2 for external integrations",
+    "Extension system for custom functionality",
+    "Multi-language support (zh-cn, zh-tw, en, de, fr)",
+    "Business intelligence, metrics, and reporting dashboards",
+    "Document and knowledge base management"
+  ],
+  "publicApiSurface": [
+    "GET/POST /tokens — Authentication",
+    "GET/POST /products — Product management",
+    "GET/POST /projects — Project management",
+    "GET/POST /stories — User story management",
+    "GET/POST /tasks — Task management",
+    "GET/POST /bugs — Bug tracking",
+    "GET/POST /testcases — Test case management",
+    "GET/POST /executions — Sprint/execution management",
+    "GET/POST /users — User management",
+    "GET/POST /docs — Documentation management",
+    "GET/POST /builds — Build management",
+    "GET/POST /releases — Release management",
+    "GET/POST /todos — Personal todo management",
+    "POST /bugs/:id/resolve — Resolve a bug",
+    "POST /stories/:id/review — Review a story",
+    "GET /repos — Repository listing",
+    "POST /webhook — Webhook events"
+  ]
+}

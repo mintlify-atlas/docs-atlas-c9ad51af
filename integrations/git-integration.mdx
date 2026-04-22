@@ -1,0 +1,235 @@
+---
+title: "Connect Git repositories and manage code in ZenTao"
+description: "Link Git, GitLab, Gitea, Gogs, and SVN repositories to ZenTao to trace commits, manage branches, and review merge requests alongside your stories and bugs."
+---
+
+ZenTao integrates with the most widely used version control systems so that your development activity stays connected to the work items you track in ZenTao. Once a repository is linked, commits appear against stories, bugs, and tasks, branches can be created directly from work items, and merge requests (MRs) move through review without leaving ZenTao's DevOps section.
+
+## Supported repository types
+
+<CardGroup cols={2}>
+  <Card title="GitLab" icon="gitlab" href="#gitlab">
+    Connect a self-hosted or cloud GitLab instance via its REST API. Supports MRs, webhooks, branch management, and user binding.
+  </Card>
+  <Card title="Gitea" icon="code-branch" href="#gitea">
+    Link a Gitea server using a personal access token. Supports MRs, branch operations, and per-user account binding.
+  </Card>
+  <Card title="Gogs" icon="code-branch" href="#gogs">
+    Integrate a Gogs instance the same way as Gitea — token-based, with per-user account binding.
+  </Card>
+  <Card title="Git (generic)" icon="git-alt" href="#git-generic">
+    Point ZenTao at any bare Git repository accessible on the server's filesystem. Commits are synced on a schedule.
+  </Card>
+  <Card title="SVN" icon="folder-closed" href="#svn">
+    Connect a Subversion repository by path or HTTP URL. ZenTao syncs revision logs on a schedule.
+  </Card>
+</CardGroup>
+
+<Note>
+GitLab, Gitea, and Gogs are "service-backed" providers: ZenTao uses their APIs to sync commits in real time via webhooks and to manage MRs and branches. Git (generic) and SVN rely on a periodic sync job (`git->run()` / `svn->run()`).
+</Note>
+
+---
+
+## Connecting a repository
+
+Before you link a specific repository, you must first register the hosting server in ZenTao's DevOps space. The steps differ slightly per provider.
+
+<Tabs>
+  <Tab title="GitLab">
+    <Steps>
+      <Step title="Add a GitLab server">
+        Go to **DevOps → GitLab** and click **Create**. Fill in the server URL and a personal access token that has at least `api` scope. ZenTao validates the token before saving.
+      </Step>
+      <Step title="Bind your GitLab account">
+        Non-admin users must bind their GitLab user account under **DevOps → GitLab → Bind User** so that actions like creating branches are performed as the correct identity.
+      </Step>
+      <Step title="Import a repository">
+        Go to **DevOps → Repo → Create**. Select **GitLab** as the type, choose the registered GitLab host, then select the project from the dropdown. ZenTao records the project ID and API path (`/api/v4/projects/{id}/repository/`) and adds a webhook automatically.
+      </Step>
+    </Steps>
+
+    <Tip>
+      Admin users do not need to bind a GitLab account — they can manage all repositories without binding.
+    </Tip>
+  </Tab>
+
+  <Tab title="Gitea">
+    <Steps>
+      <Step title="Add a Gitea server">
+        Go to **DevOps → Gitea** and click **Create**. Enter the server URL and a Gitea access token with repository permissions. ZenTao checks the token against the Gitea API before saving.
+      </Step>
+      <Step title="Bind your Gitea account">
+        Non-admin users must bind their Gitea account under **DevOps → Gitea → Bind User**. The binding is stored per ZenTao account.
+      </Step>
+      <Step title="Import a repository">
+        Go to **DevOps → Repo → Create**, select **Gitea** as the type, pick the registered server, and choose the repository. ZenTao stores the API path (`/api/v1/repos/{namespace}/`) and attaches a webhook.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Gogs">
+    <Steps>
+      <Step title="Add a Gogs server">
+        Go to **DevOps → Gogs** and click **Create**. Enter the server URL and an access token. ZenTao verifies access before saving.
+      </Step>
+      <Step title="Bind your Gogs account">
+        Non-admin users bind their Gogs account under **DevOps → Gogs → Bind User**.
+      </Step>
+      <Step title="Import a repository">
+        Go to **DevOps → Repo → Create**, choose **Gogs** as the type, select the server, and pick the repository. A webhook is attached automatically on save.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Git (generic)">
+    <Steps>
+      <Step title="Ensure exec is available">
+        ZenTao's repo module requires PHP's `exec` and `shell_exec` functions. If your server disables them, the Git integration will not work.
+      </Step>
+      <Step title="Install the Git client">
+        Make sure the `git` binary is installed on the ZenTao server. Note the full path (for example, `/usr/bin/git`).
+      </Step>
+      <Step title="Create a repository record">
+        Go to **DevOps → Repo → Create**, select **Git** as the type, enter the repository path (for example, `/home/user/myproject`), and set the client path. Required fields are **Product**, **Type**, **Name**, and **Encoding**.
+      </Step>
+      <Step title="Trigger an initial sync">
+        After saving, ZenTao immediately starts a sync to import existing commits. Subsequent syncs happen automatically every 10 seconds via the scheduled task.
+      </Step>
+    </Steps>
+
+    <Warning>
+      The repository path must be accessible by the web server user. Paths with spaces in the client installation directory are not supported.
+    </Warning>
+  </Tab>
+
+  <Tab title="SVN">
+    <Steps>
+      <Step title="Install the SVN client">
+        Install the `svn` command-line client on the ZenTao server (for example, `/usr/bin/svn`). SVN version 1.8 or later is required for HTTPS repositories.
+      </Step>
+      <Step title="Create a repository record">
+        Go to **DevOps → Repo → Create**, select **Subversion** as the type, and enter the repository URL (for example, `http://example.com/svn/trunk/myproject`). **Username** and **Password** are required for SVN repositories.
+      </Step>
+      <Step title="Initial sync">
+        ZenTao syncs SVN revision logs in batches of 10 revisions. The sync runs on the configured cron schedule.
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+---
+
+## Linking commits to stories and bugs
+
+ZenTao parses commit messages to associate revisions with stories, bugs, and tasks. You configure the keyword rules under **DevOps → Repo → Set Rules**.
+
+### Default commit message rules
+
+The default rules use the following keywords and markers:
+
+| Object type | Keyword | Example action |
+|-------------|---------|----------------|
+| Story       | `Story` | Link a commit to a story |
+| Bug         | `Bug`   | Link a commit to a bug |
+| Task        | `Task`  | Link a commit to a task |
+
+The default ID marker is `#` and multiple IDs are separated by `,`.
+
+<CodeGroup>
+
+```text Link a story and a bug
+Fix login timeout Bug #42,#43 Story #17
+```
+
+```text Start and log effort on a task
+Start Task #12,#15 Cost:1h Left:3h
+```
+
+```text Finish a task
+Finish Task #8 Cost:10h
+```
+
+```text Resolve a bug
+Fix Bug #99,#100
+```
+
+</CodeGroup>
+
+<Tip>
+  All keywords are case-sensitive and match the default rules exactly. If you change the rules in **Set Rules**, update your team's commit message conventions to match.
+</Tip>
+
+When ZenTao processes a matching commit, it records the revision against the linked object and the object's history shows the associated commit.
+
+---
+
+## Merge request integration
+
+ZenTao's MR module lets you create, review, and merge pull requests across GitLab, Gitea, and Gogs repositories — all from within ZenTao.
+
+<Note>
+MRs are only available for service-backed providers (GitLab, Gitea, Gogs). Generic Git and SVN repositories do not support the MR workflow.
+</Note>
+
+### Browsing merge requests
+
+Navigate to **DevOps → MR** and select a repository. You can filter MRs by status (`opened`, `merged`, `closed`) and by assignee or creator. ZenTao fetches the MR list from the provider's API and displays it alongside any linked ZenTao objects.
+
+### Linking MRs to work items
+
+From an MR detail page, use the **Link Story**, **Link Bug**, or **Link Task** actions to associate the MR with one or more ZenTao objects. This creates a traceable connection between code review and the original requirement or defect.
+
+### Branch management
+
+For GitLab, Gitea, and Gogs repositories, you can create branches directly from a story, task, or bug detail page:
+
+<Steps>
+  <Step title="Open the work item">
+    Navigate to the story, task, or bug for which you want to create a branch.
+  </Step>
+  <Step title="Create a branch">
+    Click **Create Branch** (available when the work item is in an active state). Enter a branch name and choose the source branch or tag to create from.
+  </Step>
+  <Step title="Verify branch creation">
+    ZenTao calls the provider's API to create the branch. The new branch appears immediately in **DevOps → Repo → Browse Branch**.
+  </Step>
+</Steps>
+
+<Warning>
+  You cannot create a branch from a story that is not active, a task that is not in "waiting" or "doing" status, or a bug that is not active.
+</Warning>
+
+---
+
+## Code review workflow
+
+ZenTao's repository view includes inline code review. From a commit's diff view (**DevOps → Repo → diff**):
+
+- Add a review comment on any line range.
+- Attach a bug directly to a specific file location — the review records the file path, revision, and line numbers.
+- Edit or delete existing review comments.
+
+Blame information is available at the file level, showing which commit last changed each line along with the committer and timestamp.
+
+---
+
+## Provider-specific configuration details
+
+<AccordionGroup>
+  <Accordion title="GitLab API path format">
+    ZenTao constructs GitLab API requests using the pattern `{host}/api/v4/projects/{project_id}/repository/`. Up to 300 items per page are fetched from the GitLab API. Make sure your token has the `api` scope.
+  </Accordion>
+  <Accordion title="Gitea API path format">
+    Gitea requests use `{host}/api/v1/repos/{namespace}/`. Ensure your token has repository read and write permissions to support branch creation and webhook registration.
+  </Accordion>
+  <Accordion title="Generic Git sync interval">
+    The Git sync task (`git->run()`) is designed to run on a short cron interval. The repository module caches results for 10 seconds (`cacheTime = 10`) and syncs in batches of 100 commits at a time (`batchNum = 100`).
+  </Accordion>
+  <Accordion title="SVN sync interval">
+    The SVN sync task (`svn->run()`) processes revisions in batches of 10 (`svnBatchNum = 10`). For large repositories, expect several sync cycles before all history is imported.
+  </Accordion>
+  <Accordion title="Repository access control">
+    Each repository can be set to one of three access levels: **Private** (product personnel only), **Open** (all users with DevOps privileges), or **Custom** (specific groups or users you select).
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,418 @@
+---
+title: "Tasks API — ZenTao task management REST endpoints"
+description: "Create, assign, and transition ZenTao tasks through their full lifecycle via REST API, including start, pause, finish, close, and restart operations."
+---
+
+The Tasks API lets you manage execution tasks in ZenTao. Tasks belong to executions (sprints or stages) and can be assigned to team members, tracked by effort, and progressed through statuses: `wait`, `doing`, `done`, `pause`, `cancel`, and `closed`. All requests require a valid token in the `Token` header — see the [authentication guide](/api/authentication). The base URL for all endpoints is `https://your-zentao.example.com/api.php/v1`.
+
+---
+
+## GET /tasks
+
+Returns a paginated list of tasks visible to the authenticated user.
+
+<ParamField query="status" type="string">
+  Filter by status. One of `wait`, `doing`, `done`, `pause`, `cancel`, or `closed`.
+</ParamField>
+
+<ParamField query="execution" type="integer">
+  Filter tasks by execution (sprint/stage) ID.
+</ParamField>
+
+<ParamField query="assignedTo" type="string">
+  Filter by assignee account name.
+</ParamField>
+
+<ParamField query="page" type="integer">
+  Page number. Defaults to `1`.
+</ParamField>
+
+<ParamField query="limit" type="integer">
+  Records per page. Defaults to `20`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/tasks?status=doing" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Task ID.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Task name.
+</ResponseField>
+<ResponseField name="execution" type="integer">
+  ID of the execution this task belongs to.
+</ResponseField>
+<ResponseField name="project" type="integer">
+  ID of the project.
+</ResponseField>
+<ResponseField name="story" type="integer">
+  ID of the linked story, or `0` if none.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Task status.
+</ResponseField>
+<ResponseField name="type" type="string">
+  Task type. One of `design`, `devel`, `request`, `test`, `study`, `discuss`, `ui`, `affair`, or `misc`.
+</ResponseField>
+<ResponseField name="pri" type="integer">
+  Priority (1 = highest, 4 = lowest).
+</ResponseField>
+<ResponseField name="estimate" type="number">
+  Estimated effort in hours.
+</ResponseField>
+<ResponseField name="consumed" type="number">
+  Total hours consumed so far.
+</ResponseField>
+<ResponseField name="left" type="number">
+  Estimated hours remaining.
+</ResponseField>
+<ResponseField name="assignedTo" type="string">
+  Account name of the current assignee.
+</ResponseField>
+<ResponseField name="deadline" type="string">
+  Task deadline (`YYYY-MM-DD`).
+</ResponseField>
+
+---
+
+## GET /tasks/:id
+
+Returns a single task by its ID.
+
+<ParamField path="id" type="integer" required>
+  The task ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/tasks/100" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Task ID.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Task name.
+</ResponseField>
+<ResponseField name="execution" type="integer">
+  Execution ID.
+</ResponseField>
+<ResponseField name="project" type="integer">
+  Project ID.
+</ResponseField>
+<ResponseField name="story" type="integer">
+  Linked story ID.
+</ResponseField>
+<ResponseField name="module" type="integer">
+  Module ID.
+</ResponseField>
+<ResponseField name="type" type="string">
+  Task type.
+</ResponseField>
+<ResponseField name="mode" type="string">
+  Assignment mode. One of `linear` (serial multi-person) or `multi` (parallel multi-person).
+</ResponseField>
+<ResponseField name="pri" type="integer">
+  Priority.
+</ResponseField>
+<ResponseField name="estimate" type="number">
+  Estimated hours.
+</ResponseField>
+<ResponseField name="consumed" type="number">
+  Hours consumed.
+</ResponseField>
+<ResponseField name="left" type="number">
+  Hours remaining.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Task status.
+</ResponseField>
+<ResponseField name="desc" type="string">
+  Task description (HTML).
+</ResponseField>
+<ResponseField name="assignedTo" type="string">
+  Assignee account name.
+</ResponseField>
+<ResponseField name="estStarted" type="string">
+  Estimated start date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="deadline" type="string">
+  Deadline (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="realStarted" type="string">
+  Actual start date.
+</ResponseField>
+<ResponseField name="finishedDate" type="string">
+  Actual finish date.
+</ResponseField>
+<ResponseField name="openedBy" type="string">
+  Creator account name.
+</ResponseField>
+<ResponseField name="openedDate" type="string">
+  Creation timestamp.
+</ResponseField>
+<ResponseField name="closedReason" type="string">
+  Reason for closure. One of `done` or `cancel`.
+</ResponseField>
+
+---
+
+## POST /tasks
+
+Creates a new task in an execution.
+
+<ParamField body="execution" type="integer" required>
+  ID of the execution (sprint or stage) to add the task to.
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Task name.
+</ParamField>
+
+<ParamField body="type" type="string">
+  Task type. One of `design`, `devel`, `request`, `test`, `study`, `discuss`, `ui`, `affair`, or `misc`. Defaults to `devel`.
+</ParamField>
+
+<ParamField body="pri" type="integer">
+  Priority. One of `1`, `2`, `3`, or `4`. Defaults to `3`.
+</ParamField>
+
+<ParamField body="estimate" type="number">
+  Estimated effort in hours.
+</ParamField>
+
+<ParamField body="assignedTo" type="string">
+  Account name to assign the task to.
+</ParamField>
+
+<ParamField body="story" type="integer">
+  ID of the story to link this task to.
+</ParamField>
+
+<ParamField body="module" type="integer">
+  Module ID within the product.
+</ParamField>
+
+<ParamField body="estStarted" type="string">
+  Estimated start date (`YYYY-MM-DD`).
+</ParamField>
+
+<ParamField body="deadline" type="string">
+  Deadline (`YYYY-MM-DD`).
+</ParamField>
+
+<ParamField body="desc" type="string">
+  Task description. Accepts HTML.
+</ParamField>
+
+<ParamField body="mailto" type="string">
+  Comma-separated account names to notify by email.
+</ParamField>
+
+<Tip>
+  To create multiple tasks at once, use `POST /tasks/batchCreate` or `POST /executions/:id/tasks/batchCreate` and supply an array of task objects in the request body.
+</Tip>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/tasks" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "execution": 5,
+    "name": "Implement login endpoint",
+    "type": "devel",
+    "pri": 2,
+    "estimate": 8,
+    "assignedTo": "carol",
+    "deadline": "2026-05-15"
+  }'
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  ID of the newly created task.
+</ResponseField>
+
+---
+
+## POST /tasks/:id/assignto
+
+Assigns the task to a different team member.
+
+<ParamField path="id" type="integer" required>
+  The task ID.
+</ParamField>
+
+<ParamField body="assignedTo" type="string" required>
+  Account name of the new assignee.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/tasks/100/assignto" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"assignedTo": "dave"}'
+```
+</CodeGroup>
+
+---
+
+## POST /tasks/:id/start
+
+Starts the specified task, transitioning its status to `doing`.
+
+<ParamField path="id" type="integer" required>
+  The task ID.
+</ParamField>
+
+<ParamField body="left" type="number">
+  Revised estimate of hours remaining at start time.
+</ParamField>
+
+<ParamField body="realStarted" type="string">
+  Actual start date (`YYYY-MM-DD`). Defaults to today.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/tasks/100/start" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"left": 8, "realStarted": "2026-05-01"}'
+```
+</CodeGroup>
+
+---
+
+## POST /tasks/:id/pause
+
+Pauses the specified task, transitioning its status from `doing` to `pause`.
+
+<ParamField path="id" type="integer" required>
+  The task ID.
+</ParamField>
+
+<ParamField body="left" type="number">
+  Remaining estimated hours at pause time.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/tasks/100/pause" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"left": 4, "comment": "Blocked by design review."}'
+```
+</CodeGroup>
+
+---
+
+## POST /tasks/:id/finish
+
+Marks the task as done, transitioning its status to `done`.
+
+<ParamField path="id" type="integer" required>
+  The task ID.
+</ParamField>
+
+<ParamField body="consumed" type="number">
+  Total hours consumed.
+</ParamField>
+
+<ParamField body="finishedDate" type="string">
+  Actual finish date (`YYYY-MM-DD`). Defaults to today.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/tasks/100/finish" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"consumed": 10, "finishedDate": "2026-05-10"}'
+```
+</CodeGroup>
+
+---
+
+## POST /tasks/:id/close
+
+Closes the specified task. A task must be `done` or `cancelled` before it can be closed.
+
+<ParamField path="id" type="integer" required>
+  The task ID.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/tasks/100/close" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"comment": "Verified in staging environment."}'
+```
+</CodeGroup>
+
+---
+
+## POST /tasks/:id/restart
+
+Resumes a paused task, transitioning it back to `doing` status.
+
+<ParamField path="id" type="integer" required>
+  The task ID.
+</ParamField>
+
+<ParamField body="left" type="number">
+  Revised remaining estimate in hours.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<Note>
+  Use this endpoint to continue a task that was previously paused. It is distinct from the `activate` action, which is for tasks that were cancelled or closed.
+</Note>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/tasks/100/restart" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"left": 3, "comment": "Design review complete. Resuming development."}'
+```
+</CodeGroup>

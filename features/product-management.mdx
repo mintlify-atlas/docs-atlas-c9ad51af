@@ -1,0 +1,116 @@
+---
+title: "Product management in ZenTao: stories, plans, releases"
+description: "Learn how ZenTao organizes work around Products — the top-level container for user stories, product plans, and versioned releases across your team."
+---
+
+In ZenTao, a **Product** is the central unit around which your entire delivery process is organized. Every user story you write, every plan you schedule, and every release you ship belongs to a product. Whether you are building a web application, a mobile app, or an internal tool, you create a product first and then layer stories, plans, and releases on top of it.
+
+## What a product is
+
+A product in ZenTao acts as the container that groups related work together. It holds:
+
+<CardGroup cols={2}>
+  <Card title="Stories" icon="book-open">
+    User stories (development requirements) that describe what the product must do. Stories are the primary unit of work scoped to a product.
+  </Card>
+  <Card title="Plans" icon="calendar">
+    Product plans that group stories into scheduled milestones. A plan has a start date, end date, and a set of linked stories.
+  </Card>
+  <Card title="Releases" icon="rocket">
+    Versioned releases that record which stories and resolved bugs shipped in each build. Releases are linked to specific builds.
+  </Card>
+  <Card title="Linked projects" icon="diagram-project">
+    Projects and executions (sprints or iterations) can be linked to a product, connecting development work back to the product backlog.
+  </Card>
+</CardGroup>
+
+A product also has a **Product Line** for grouping related products, a **Manager** responsible for it, and a **Status** of either active or closed.
+
+## Product lifecycle
+
+<Steps>
+  <Step title="Create a product">
+    Go to **Product** in the top navigation and click **Create Product**. Fill in the product name, product line (optional), description, and assign a manager. ZenTao redirects you to the new product's home page automatically if no products exist yet.
+  </Step>
+  <Step title="Add user stories">
+    Open the product and navigate to **Story List**. Click **Create Story** to write a story. Give it a title, description, acceptance criteria (**Acceptance** field), priority, and optionally assign it to a reviewer. You can save it as a **Draft** if it is not ready for review.
+  </Step>
+  <Step title="Create a product plan">
+    Navigate to **Plans** in the product menu and click **Create Plan**. Set the plan name, start date, end date, and link the stories that belong to this milestone. Plans help you track which stories are targeted for a specific period.
+  </Step>
+  <Step title="Link to a project and execution">
+    When a team is ready to build the stories, link the product to a project. Inside the project, create an execution (sprint or iteration) and pull the relevant stories into it. The product backlog is the source; the execution is where development happens.
+  </Step>
+  <Step title="Create a release">
+    After the team finishes work and a build is available, navigate to **Releases** and click **Create Release**. Record the release version, date, and link the stories and bugs that are included. Releases give stakeholders a permanent record of what shipped.
+  </Step>
+</Steps>
+
+## Story status and workflow
+
+Stories move through a defined status progression as they are written, reviewed, built, and shipped.
+
+<Tabs>
+  <Tab title="With review enabled">
+    When a product requires story review, the full workflow applies:
+
+    | Status | Meaning |
+    |--------|---------|
+    | **Draft** | Story is saved but not yet submitted for review. |
+    | **Reviewing** | Story has been submitted and is awaiting a reviewer's decision. |
+    | **Active** | Story passed review and is approved for development. |
+    | **Changing** | Story is in active development but a change request has been submitted. |
+    | **Closed** | Story is done (shipped, duplicate, won't do, etc.). |
+
+    A reviewer can **Pass**, **Revert** (send back to draft), request **Clarification**, or **Reject** a story during review.
+  </Tab>
+  <Tab title="Without review">
+    When review is turned off for a product, stories move directly to **Active** on creation, skipping the **Reviewing** status entirely.
+  </Tab>
+</Tabs>
+
+### Story phase (stage)
+
+In addition to status, each story tracks a **Phase** that reflects where it sits in the delivery pipeline:
+
+- **Waiting** → **Planned** → **Projected** → **Designing** → **Designed** → **Developing** → **Developed** → **Testing** → **Tested** → **Accepted** → **Released** → **Closed**
+
+Phase is set automatically as tasks and test results are linked to the story, giving product managers a real-time view of delivery progress.
+
+### Closing a story
+
+When you close a story, ZenTao asks you to select a **Reason**:
+
+<AccordionGroup>
+  <Accordion title="Close reasons">
+    - **Already Done** — the story was completed and shipped.
+    - **Decomposed** — the story was split into child stories.
+    - **Duplicate** — another story already covers this requirement.
+    - **Postponed** — the story is deferred to a later plan.
+    - **Won't Do** — the team decided not to implement it.
+    - **Cancelled** — the requirement is no longer needed.
+    - **As Designed** — the reported issue is intentional product behavior.
+  </Accordion>
+</AccordionGroup>
+
+## Product plans
+
+A product plan is a lightweight milestone that lets you group stories by a target date range. You can create parent plans and child plans to model multi-level roadmaps. Each plan shows you how many stories are linked, how many are active, and completion statistics.
+
+<Note>
+  Plans are product-scoped, not project-scoped. The same plan can span multiple executions (sprints) across one or more linked projects.
+</Note>
+
+## Releases
+
+A release records the output of a completed build. When you create a release you link:
+
+- **Stories** — the user stories delivered in this version.
+- **Bugs** — the bugs resolved and included in this build.
+- **Build** — the specific build artifact (from the execution) that produced the release.
+
+Releases have two types: **Normal** (a regular shipped version) and **Terminated** (a version that was cancelled before shipping). You can browse release history on the **Releases** tab of any product.
+
+<Tip>
+  Use the **Product Roadmap** view to get a visual timeline of all plans and releases for a product in one place.
+</Tip>

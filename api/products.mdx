@@ -1,0 +1,343 @@
+---
+title: "Products API — ZenTao product management endpoints"
+description: "Manage ZenTao products via REST API. List, retrieve, and create products, and fetch related plans, releases, stories, and bugs for a given product."
+---
+
+The Products API lets you manage the top-level product entities in ZenTao. Products act as containers for stories, bugs, plans, and releases. Every request requires a valid token in the `Token` header — see the [authentication guide](/api/authentication) for details. The base URL for all endpoints is `https://your-zentao.example.com/api.php/v1`.
+
+---
+
+## GET /products
+
+Returns a paginated list of all products visible to the authenticated user.
+
+<ParamField query="page" type="integer">
+  Page number for pagination. Defaults to `1`.
+</ParamField>
+
+<ParamField query="limit" type="integer">
+  Number of records per page. Defaults to `20`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/products" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Unique product ID.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Product name.
+</ResponseField>
+<ResponseField name="code" type="string">
+  Short code identifier for the product.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Product status. One of `normal` or `closed`.
+</ResponseField>
+<ResponseField name="PO" type="string">
+  Account name of the Product Owner.
+</ResponseField>
+<ResponseField name="QD" type="string">
+  Account name of the QA Director.
+</ResponseField>
+<ResponseField name="RD" type="string">
+  Account name of the R&D Director.
+</ResponseField>
+<ResponseField name="acl" type="string">
+  Access control level. One of `open`, `private`, or `custom`.
+</ResponseField>
+<ResponseField name="desc" type="string">
+  Product description (HTML).
+</ResponseField>
+
+---
+
+## GET /products/:id
+
+Returns a single product by its ID.
+
+<ParamField path="id" type="integer" required>
+  The product ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/products/1" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Unique product ID.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Product name.
+</ResponseField>
+<ResponseField name="code" type="string">
+  Short code identifier.
+</ResponseField>
+<ResponseField name="status" type="string">
+  `normal` or `closed`.
+</ResponseField>
+<ResponseField name="PO" type="string">
+  Product Owner account name.
+</ResponseField>
+<ResponseField name="QD" type="string">
+  QA Director account name.
+</ResponseField>
+<ResponseField name="RD" type="string">
+  R&D Director account name.
+</ResponseField>
+<ResponseField name="desc" type="string">
+  Full product description (HTML).
+</ResponseField>
+<ResponseField name="acl" type="string">
+  Access control level.
+</ResponseField>
+<ResponseField name="program" type="integer">
+  ID of the parent program, or `0` if none.
+</ResponseField>
+
+---
+
+## POST /products
+
+Creates a new product.
+
+<ParamField body="name" type="string" required>
+  Product name. Must be unique within the program.
+</ParamField>
+
+<ParamField body="code" type="string" required>
+  Short code for the product. Must be unique and contain only letters, digits, and hyphens.
+</ParamField>
+
+<ParamField body="PO" type="string">
+  Account name of the Product Owner.
+</ParamField>
+
+<ParamField body="QD" type="string">
+  Account name of the QA Director.
+</ParamField>
+
+<ParamField body="RD" type="string">
+  Account name of the R&D Director.
+</ParamField>
+
+<ParamField body="desc" type="string">
+  Product description. Accepts HTML.
+</ParamField>
+
+<ParamField body="acl" type="string">
+  Access control level. One of `open` (default), `private`, or `custom`.
+</ParamField>
+
+<ParamField body="program" type="integer">
+  ID of the program this product belongs to. Defaults to `0` (no program).
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/products" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Mobile App",
+    "code": "mobile-app",
+    "PO": "alice",
+    "acl": "open"
+  }'
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  ID of the newly created product.
+</ResponseField>
+
+---
+
+## GET /products/:id/plans
+
+Returns all product plans linked to the specified product.
+
+<ParamField path="id" type="integer" required>
+  The product ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/products/1/plans" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Plan ID.
+</ResponseField>
+<ResponseField name="product" type="integer">
+  ID of the product this plan belongs to.
+</ResponseField>
+<ResponseField name="title" type="string">
+  Plan title.
+</ResponseField>
+<ResponseField name="begin" type="string">
+  Plan start date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="end" type="string">
+  Plan end date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="status" type="string">
+  Plan status. One of `wait`, `doing`, or `done`.
+</ResponseField>
+
+---
+
+## GET /products/:id/releases
+
+Returns all releases linked to the specified product.
+
+<ParamField path="id" type="integer" required>
+  The product ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/products/1/releases" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Release ID.
+</ResponseField>
+<ResponseField name="product" type="integer">
+  Product ID this release is linked to.
+</ResponseField>
+<ResponseField name="name" type="string">
+  Release name.
+</ResponseField>
+<ResponseField name="date" type="string">
+  Release date (`YYYY-MM-DD`).
+</ResponseField>
+<ResponseField name="status" type="string">
+  Release status. One of `normal` or `terminated`.
+</ResponseField>
+<ResponseField name="build" type="string">
+  Comma-separated list of build IDs included in this release.
+</ResponseField>
+
+---
+
+## GET /products/:id/stories
+
+Returns stories linked to the specified product.
+
+<ParamField path="id" type="integer" required>
+  The product ID.
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter by story status. One of `draft`, `reviewing`, `active`, `changing`, or `closed`.
+</ParamField>
+
+<ParamField query="page" type="integer">
+  Page number. Defaults to `1`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/products/1/stories?status=active" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Story ID.
+</ResponseField>
+<ResponseField name="title" type="string">
+  Story title.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Story status.
+</ResponseField>
+<ResponseField name="pri" type="integer">
+  Priority (1 = highest, 4 = lowest).
+</ResponseField>
+<ResponseField name="estimate" type="number">
+  Estimated effort in hours.
+</ResponseField>
+<ResponseField name="assignedTo" type="string">
+  Account name of the person the story is assigned to.
+</ResponseField>
+<ResponseField name="stage" type="string">
+  Current development phase (e.g., `wait`, `developing`, `testing`, `released`).
+</ResponseField>
+
+---
+
+## GET /products/:id/bugs
+
+Returns bugs linked to the specified product.
+
+<ParamField path="id" type="integer" required>
+  The product ID.
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter by bug status. One of `active`, `resolved`, or `closed`.
+</ParamField>
+
+<ParamField query="page" type="integer">
+  Page number. Defaults to `1`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/products/1/bugs?status=active" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Bug ID.
+</ResponseField>
+<ResponseField name="title" type="string">
+  Bug title.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Bug status: `active`, `resolved`, or `closed`.
+</ResponseField>
+<ResponseField name="severity" type="integer">
+  Severity level (1 = critical, 4 = minor).
+</ResponseField>
+<ResponseField name="pri" type="integer">
+  Priority (1 = highest, 4 = lowest).
+</ResponseField>
+<ResponseField name="assignedTo" type="string">
+  Account name of the person the bug is assigned to.
+</ResponseField>
+<ResponseField name="openedBy" type="string">
+  Account name of the person who reported the bug.
+</ResponseField>
+<ResponseField name="openedDate" type="string">
+  Date the bug was reported (`YYYY-MM-DD HH:MM:SS`).
+</ResponseField>

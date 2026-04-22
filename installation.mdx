@@ -1,0 +1,299 @@
+---
+title: "Install ZenTao on Linux, Windows, macOS, or Docker"
+description: "Step-by-step instructions for every ZenTao installation method: Docker, all-in-one packages for Linux, Windows, and macOS, and manual source installation."
+---
+
+ZenTao runs on PHP and MySQL/MariaDB and can be deployed on most Linux distributions, Windows Server, and macOS. The quickest path for most teams is the all-in-one package installer, which bundles a web server, PHP, and MySQL together. If you prefer containers, an official Docker image is also available.
+
+## System requirements
+
+Before installing, confirm your environment meets these minimums:
+
+| Component | Minimum |
+|-----------|---------|
+| PHP | 5.6 or later (8.1+ recommended) |
+| Database | MySQL or MariaDB |
+| Web server | Apache, Nginx, or Caddy |
+
+**Required PHP extensions:** PDO, PDO_MySQL, JSON, OpenSSL, Mbstring, Zlib, cURL, Filter, Iconv.
+
+The ZenTao web installer checks all of these automatically on step 1 and reports anything missing.
+
+<Warning>
+  The table prefix defaults to `zt_`. If you are installing into an existing database, make sure no tables with that prefix already exist — or clear them before continuing.
+</Warning>
+
+## Installation methods
+
+<Tabs>
+  <Tab title="Docker">
+
+Docker is the fastest way to get ZenTao running with no dependency configuration. The official image is published as `easysoft/zentao`.
+
+### Run with a bundled database
+
+The simplest approach uses a single container with an internal MySQL instance:
+
+<CodeGroup>
+
+```bash Docker run
+docker run -d \
+  --name zentao \
+  -p 80:80 \
+  -e MYSQL_INTERNAL=true \
+  -v zentao-data:/data \
+  easysoft/zentao
+```
+
+```bash Docker run (named ports)
+docker run -d \
+  --name zentao \
+  -p 8080:80 \
+  -e MYSQL_INTERNAL=true \
+  -v zentao-data:/data \
+  easysoft/zentao
+```
+
+</CodeGroup>
+
+Open `http://localhost` (or `http://localhost:8080` if you used port 8080) and the ZenTao web installer will start.
+
+### Run with an external MySQL database
+
+For production use, connect ZenTao to a dedicated MySQL instance using environment variables:
+
+```bash
+docker run -d \
+  --name zentao \
+  -p 80:80 \
+  -e MYSQL_HOST=db.example.com \
+  -e MYSQL_PORT=3306 \
+  -e MYSQL_DB=zentao \
+  -e MYSQL_USER=zentao \
+  -e MYSQL_PASSWORD=your_password \
+  -v zentao-data:/data \
+  easysoft/zentao
+```
+
+| Environment variable | Description |
+|---------------------|-------------|
+| `MYSQL_HOST` | Database server hostname or IP |
+| `MYSQL_PORT` | Database port (default `3306`) |
+| `MYSQL_DB` | Database name |
+| `MYSQL_USER` | Database username |
+| `MYSQL_PASSWORD` | Database password |
+| `MYSQL_INTERNAL` | Set to `true` to use the built-in MySQL instance |
+
+<Tip>
+  Mount a named volume (like `zentao-data`) so your data, uploads, and configuration persist across container restarts and upgrades.
+</Tip>
+
+  </Tab>
+  <Tab title="Linux package">
+
+ZenTao provides all-in-one packages for Linux that include Apache (or Nginx), PHP, and MySQL. No separate installation of any dependency is needed.
+
+### Download and extract
+
+<CodeGroup>
+
+```bash Debian / Ubuntu (amd64)
+# Download the .deb package from zentao.pm, then install:
+sudo dpkg -i ZenTaoPMS.<version>.deb
+```
+
+```bash RPM-based (RHEL / CentOS / Fedora)
+# Download the .rpm package from zentao.pm, then install:
+sudo rpm -ivh ZenTaoPMS.<version>.rpm
+```
+
+```bash Generic Linux (tar.gz)
+# Download the .zip or .tar.xz archive:
+tar -xJf ZenTaoPMS.<version>.tar.xz
+
+# Move to a web-accessible directory:
+sudo mv zentaopms /opt/zentao
+
+# Set permissions:
+sudo chmod 777 -R /opt/zentao/tmp/
+sudo chmod 777 -R /opt/zentao/www/data/
+sudo chmod 777 -R /opt/zentao/config/
+sudo chmod 777 -R /opt/zentao/extension/custom/
+```
+
+</CodeGroup>
+
+### Start the built-in services
+
+If you installed using the `.deb` or `.rpm` package, start the bundled services:
+
+```bash
+sudo systemctl start zentao
+```
+
+For the generic archive, start your web server and PHP-FPM pointing at `/opt/zentao/www/` as the document root, with `index.php` as the entry point.
+
+### Open the web installer
+
+Navigate to `http://your-server-ip/install.php` in a browser to run the ZenTao setup wizard.
+
+  </Tab>
+  <Tab title="Windows package">
+
+ZenTao provides a Windows installer that bundles Apache, PHP, and MySQL into a single setup executable.
+
+<Steps>
+  <Step title="Download the installer">
+    Download `ZenTaoPMS.<version>.exe` from the ZenTao website. Run the installer and follow the prompts to choose an installation directory.
+  </Step>
+  <Step title="Start ZenTao">
+    After installation, open the **ZenTao** application from the Start menu or system tray. Click **Start** to launch the bundled Apache and MySQL services.
+  </Step>
+  <Step title="Open the web installer">
+    Click **Open in browser** from the ZenTao launcher, or navigate to `http://localhost/zentao/install.php`.
+  </Step>
+</Steps>
+
+<Note>
+  The Windows all-in-one package installs ZenTao under `C:\xampp\zentao\` by default. The config file is at `C:\xampp\zentao\config\my.php` after installation.
+</Note>
+
+  </Tab>
+  <Tab title="macOS package">
+
+ZenTao can run on macOS using MAMP or XAMPP as the PHP and MySQL layer, or via the generic archive.
+
+<Steps>
+  <Step title="Install a PHP/MySQL stack">
+    Install [MAMP](https://www.mamp.info/) or [XAMPP](https://www.apachefriends.org/) to get Apache, PHP, and MySQL running locally.
+  </Step>
+  <Step title="Extract ZenTao">
+    Download and extract the `.zip` archive:
+
+    ```bash
+    unzip ZenTaoPMS.<version>.zip
+    mv zentaopms /Applications/MAMP/htdocs/zentao
+    ```
+
+    Set the required permissions:
+
+    ```bash
+    chmod -R 777 /Applications/MAMP/htdocs/zentao/tmp/
+    chmod -R 777 /Applications/MAMP/htdocs/zentao/www/data/
+    chmod -R 777 /Applications/MAMP/htdocs/zentao/config/
+    ```
+  </Step>
+  <Step title="Open the web installer">
+    Start MAMP and navigate to `http://localhost:8888/zentao/install.php`.
+  </Step>
+</Steps>
+
+  </Tab>
+  <Tab title="Manual / source">
+
+Install ZenTao from source when you want full control over the PHP and database setup, or when running on a custom server configuration.
+
+### Prerequisites
+
+Install these before proceeding:
+
+- PHP 5.6+ with extensions: PDO, PDO_MySQL, JSON, OpenSSL, Mbstring, Zlib, cURL, Filter, Iconv
+- MySQL 5.5+ or MariaDB
+- A web server: Apache 2.4+, Nginx, or Caddy
+
+### Deploy the application
+
+<CodeGroup>
+
+```bash Apache
+# Clone or extract ZenTao to your web root:
+git clone https://github.com/easysoft/zentaopms.git /var/www/zentao
+
+# Set directory permissions:
+chmod 777 -R /var/www/zentao/tmp/
+chmod 777 -R /var/www/zentao/www/data/
+chmod 777 -R /var/www/zentao/config/
+chmod 777    /var/www/zentao/extension/custom/
+```
+
+```bash Nginx
+# Same extraction, then point your Nginx server block at the www/ subdirectory:
+# root /var/www/zentao/www;
+# index index.php;
+# location / { try_files $uri $uri/ /index.php$is_args$args; }
+```
+
+```bash Caddy
+# ZenTao ships a Caddyfile. Run from the zentao directory:
+caddy run --config Caddyfile
+```
+
+</CodeGroup>
+
+### Create the database
+
+```sql
+CREATE DATABASE zentao CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'zentao'@'localhost' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON zentao.* TO 'zentao'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+### Run the web installer
+
+Navigate to `http://your-server/install.php` to complete configuration through the setup wizard.
+
+  </Tab>
+</Tabs>
+
+## Web installer walkthrough
+
+Regardless of the installation method, ZenTao guides you through the same six-step setup wizard the first time you open it.
+
+<Steps>
+  <Step title="License agreement">
+    Review and accept the ZenTao license (AGPL or ZPL) to continue.
+  </Step>
+  <Step title="System check">
+    ZenTao inspects your PHP version, required extensions (PDO, PDO_MySQL, JSON, OpenSSL, Mbstring, Zlib, cURL, Filter, Iconv), and directory write permissions. Resolve any failures before proceeding.
+  </Step>
+  <Step title="Database configuration">
+    Enter your database connection details:
+
+    | Field | Default |
+    |-------|---------|
+    | **Database host** | `127.0.0.1` |
+    | **Host port** | `3306` |
+    | **Database name** | `zentao` |
+    | **Username** | `root` |
+    | **Password** | _(empty)_ |
+
+    ZenTao creates all required tables automatically. The table prefix defaults to `zt_`.
+  </Step>
+  <Step title="Select mode">
+    Choose how you want to use ZenTao. The **Application Lifecycle Management** mode gives you the full feature set. Your choice can be changed later from **Admin → Custom → Mode**.
+  </Step>
+  <Step title="Set admin account">
+    Enter your **company name**, an **admin username**, and a **password**. The password must be at least 6 characters and combine uppercase letters, lowercase letters, and numbers. You can also import demo data at this step to explore ZenTao with sample content.
+  </Step>
+  <Step title="Installation complete">
+    ZenTao confirms the installation. If it cannot delete `install.php` automatically, delete it manually from the `www/` directory before exposing ZenTao to the internet.
+
+    Click **Go to login** to start using ZenTao.
+  </Step>
+</Steps>
+
+<Warning>
+  After installation completes, delete or restrict access to `www/install.php` and `www/upgrade.php`. Leaving them accessible on a public server is a security risk.
+</Warning>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Create your first product, add stories, and start a sprint
+  </Card>
+  <Card title="Introduction" icon="book-open" href="/introduction">
+    Learn ZenTao's core concepts: products, projects, stories, tasks, and bugs
+  </Card>
+</CardGroup>

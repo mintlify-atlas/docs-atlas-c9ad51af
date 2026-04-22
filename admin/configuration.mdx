@@ -1,0 +1,167 @@
+---
+title: "System settings and configuration options in ZenTao admin"
+description: "Configure email notifications, file storage, language, company profile, security settings, and module visibility through ZenTao's admin panel."
+---
+
+ZenTao's admin panel brings all system-wide settings into one place. You reach it by clicking **Admin** in the top navigation. From here you can control how ZenTao communicates with users, what features are visible, how the organization is presented, and how secure the system is — all without touching any server files.
+
+## Company and organization profile
+
+Your company profile is the identity of your ZenTao instance. It appears in the org chart and in system-generated communications.
+
+<Steps>
+  <Step title="Open company settings">
+    Go to **Admin** → **Organization** → **Company Info**.
+  </Step>
+  <Step title="Update the company name">
+    Enter your organization's name. This name appears in page titles across the admin panel (for example, the department management page title shows the company name).
+  </Step>
+  <Step title="Save">
+    Click **Save** to apply the changes.
+  </Step>
+</Steps>
+
+## Email and notification settings
+
+ZenTao sends email notifications for events such as task assignments, bug updates, and build results. You configure the outgoing mail server (SMTP) through the mail settings page.
+
+<Steps>
+  <Step title="Open mail settings">
+    Go to **Admin** → **System** → **Mail**.
+  </Step>
+  <Step title="Configure the SMTP server">
+    Fill in:
+
+    - **SMTP host** — the address of your mail server (for example, `smtp.example.com`)
+    - **SMTP port** — typically `465` for SSL or `587` for STARTTLS
+    - **Encryption** — select SSL or TLS depending on your server
+    - **Username** — the sending account's login
+    - **Password** — the sending account's password
+    - **From address** — the address that appears in the "From" field of outgoing emails
+    - **From name** — the display name for outgoing emails
+  </Step>
+  <Step title="Send a test email">
+    Use the test option to send a message to a specific address and confirm delivery before saving.
+  </Step>
+  <Step title="Save settings">
+    Click **Save**. ZenTao immediately uses these settings for all outgoing notifications.
+  </Step>
+</Steps>
+
+<Tip>
+If you want users to be able to reset their own passwords by email, enable **Reset Password via Email** under **Admin** → **System** → **Security**. Without this setting, only administrators can reset passwords.
+</Tip>
+
+## Language and internationalization
+
+ZenTao supports multiple interface languages. The available languages are:
+
+| Code    | Language              |
+|---------|-----------------------|
+| `zh-cn` | Simplified Chinese    |
+| `zh-tw` | Traditional Chinese   |
+| `en`    | English               |
+| `de`    | German (Deutsch)      |
+| `fr`    | French (Français)     |
+
+Each user can choose their own language from their profile. To set the system default language, go to **Admin** → **System** → **Common** and set the default locale. New users see the system default until they change it themselves.
+
+## Module and feature visibility
+
+You can enable or disable entire feature areas from the admin panel. Disabled features are hidden from all users in the navigation.
+
+<Steps>
+  <Step title="Open the modules settings">
+    Go to **Admin** → **System** → **Modules**.
+  </Step>
+  <Step title="Toggle features">
+    Each feature group (Product, Project, Quality, etc.) shows the sub-features it contains. Uncheck any feature you want to hide from users system-wide.
+  </Step>
+  <Step title="Save the configuration">
+    Click **Save**. The navigation menu updates immediately for all users.
+  </Step>
+</Steps>
+
+<Note>
+Disabling a module does not delete its data. If you re-enable the module later, all existing records are still accessible.
+</Note>
+
+## Security settings
+
+ZenTao provides several security controls you can configure without server access.
+
+<AccordionGroup>
+  <Accordion title="Password strength requirements">
+    Go to **Admin** → **System** → **Security** to set the minimum password strength. There are three levels:
+
+    - **Level 0** — at least 6 characters
+    - **Level 1** — at least 6 characters with a mix of letters and numbers
+    - **Level 2** — at least 10 characters with letters, numbers, and special characters
+
+    Setting a higher level forces all users to use stronger passwords when they change or reset their credentials.
+  </Accordion>
+  <Accordion title="Weak password scanning">
+    Use **Admin** → **System** → **Security** → **Check Weak Passwords** to scan all existing accounts for passwords that do not meet your current strength policy. The report lists accounts with weak passwords so you can prompt those users to update them.
+  </Accordion>
+  <Accordion title="Account lockout">
+    ZenTao automatically locks accounts after a configurable number of failed login attempts. Locked accounts show the lock time in the user list. Administrators can unlock accounts at any time from **Admin** → **Organization** → **Users**.
+  </Accordion>
+  <Accordion title="Password reset method">
+    Under **Admin** → **System** → **Security** → **Reset Password Setting**, choose whether users can reset their own passwords by email or whether only an administrator can reset passwords.
+  </Accordion>
+</AccordionGroup>
+
+## Log retention
+
+ZenTao keeps an action log of system events. To control how long logs are retained:
+
+1. Go to **Admin** → **System** → **Log Settings**.
+2. Enter the number of days to keep log entries.
+3. Click **Save**.
+
+Entries older than the configured number of days are deleted automatically.
+
+## Single sign-on (SSO) integration
+
+ZenTao includes built-in support for single sign-on via ZDOO (Ranzhi). When SSO is enabled, users are redirected to the SSO provider on login instead of entering credentials directly in ZenTao.
+
+<Steps>
+  <Step title="Open SSO settings">
+    Go to **Admin** → **System** → **SSO**.
+  </Step>
+  <Step title="Enable SSO">
+    Turn on the **SSO** toggle.
+  </Step>
+  <Step title="Enter the ZDOO address">
+    Provide the URL of your ZDOO instance in the **Address** field.
+  </Step>
+  <Step title="Configure the key and code">
+    Enter the **Key** and **Code** provided by your ZDOO instance. These values authenticate ZenTao's connection to the SSO provider.
+  </Step>
+  <Step title="Set redirect behavior">
+    Choose whether unauthenticated users are automatically redirected to the SSO login page or shown the standard ZenTao login form.
+  </Step>
+  <Step title="Save settings">
+    Click **Save**. Users who are already logged into ZDOO will be authenticated automatically when they open ZenTao.
+  </Step>
+</Steps>
+
+<Warning>
+Test SSO configuration carefully before rolling it out. If the SSO address or key is incorrect, users may be unable to log in. Keep an admin session open in a separate browser tab when testing.
+</Warning>
+
+## Attachment and file storage
+
+File attachments in ZenTao are stored on the server's file system. The upload size limit is controlled by your PHP configuration (`upload_max_filesize`), which is a server-level setting. Within the admin panel you can view upload-related information when uploading extensions, but the maximum file size itself is displayed rather than configurable from the UI.
+
+## Community registration
+
+ZenTao can optionally be linked to a ZenTao community account. This enables the extension store and allows your instance to check for updates.
+
+To link your instance:
+
+1. Go to **Admin** → **System** → **Register**.
+2. Enter your community account credentials or register a new account.
+3. Complete the verification step.
+
+Once linked, your ZenTao instance can browse and install extensions from the official extension store. See [Extensions](/admin/extensions) for details.

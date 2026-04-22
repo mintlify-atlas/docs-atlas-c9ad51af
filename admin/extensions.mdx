@@ -1,0 +1,148 @@
+---
+title: "Finding, installing, and managing ZenTao extensions"
+description: "Browse the ZenTao extension store, install and upgrade plugins, manage installed extensions, and add custom extensions to your instance."
+---
+
+ZenTao's extension system lets you add capabilities beyond what ships in the core product. Extensions — sometimes called plugins — can add new modules, modify existing behavior, integrate third-party tools, or apply patches. The extension manager is available under **Admin** → **System** → **Extensions**.
+
+## Extension statuses
+
+Each extension in ZenTao has one of the following statuses:
+
+| Status        | Meaning                                                                                   |
+|---------------|-------------------------------------------------------------------------------------------|
+| `installed`   | The extension is installed and active. Its code runs on every request.                    |
+| `deactivated` | The extension is installed but inactive. Its files are present but not loaded.            |
+| `available`   | The extension package is present locally but has not been installed yet.                  |
+
+## Finding extensions in the store
+
+ZenTao's official extension store is at [zentao.pm/extension-browse.html](https://zentao.pm/extension-browse.html). You can also browse and install extensions directly from within ZenTao without leaving the admin panel.
+
+<Steps>
+  <Step title="Open the extension store in ZenTao">
+    Go to **Admin** → **System** → **Extensions**, then click the **Obtain** tab.
+  </Step>
+  <Step title="Browse or search">
+    Extensions are organized by module. Use the module tree on the left to filter by area (for example, project management, DevOps, integrations). Use the search bar to find a specific extension by name or keyword.
+  </Step>
+  <Step title="Review extension details">
+    Click an extension to see its description, version, author, license, and ZenTao version compatibility before installing.
+  </Step>
+</Steps>
+
+<Note>
+Browsing the extension store from within ZenTao requires your instance to have internet access. If your ZenTao installation runs on an isolated network, download the extension package from the store website and install it manually — see [Installing from a file](#installing-from-a-file) below.
+</Note>
+
+## Installing an extension from the store
+
+<Steps>
+  <Step title="Find the extension">
+    Browse or search for the extension in the **Obtain** tab as described above.
+  </Step>
+  <Step title="Click Install">
+    Click the **Install** button next to the extension.
+  </Step>
+  <Step title="Review the license">
+    ZenTao displays the extension's license agreement. Read it and click **Agree** to continue.
+  </Step>
+  <Step title="Handle compatibility warnings (if any)">
+    If the extension is not marked as compatible with your ZenTao version, ZenTao will warn you. You can choose to ignore the warning and proceed, but extension stability is not guaranteed. It's safer to install only extensions marked as compatible.
+  </Step>
+  <Step title="Wait for installation to complete">
+    ZenTao downloads and installs the extension. The page shows progress and a confirmation message when done.
+  </Step>
+</Steps>
+
+## Installing from a file
+
+If you have an extension package (a `.zip` file), you can upload and install it directly.
+
+<Steps>
+  <Step title="Open the upload form">
+    Go to **Admin** → **System** → **Extensions**, then click **Upload Extension**.
+  </Step>
+  <Step title="Upload the package">
+    Click **Choose File**, select your `.zip` extension package, then click **Upload**.
+  </Step>
+  <Step title="Proceed with installation">
+    After the upload, ZenTao extracts the package and redirects you to the install confirmation screen. Review the license and click **Agree** to install.
+  </Step>
+</Steps>
+
+<Tip>
+If ZenTao detects that the uploaded extension is already installed, it automatically routes you to the upgrade flow instead of a fresh install.
+</Tip>
+
+## Managing installed extensions
+
+View all installed and deactivated extensions under **Admin** → **System** → **Extensions** on the **Installed** tab. For each extension, you can:
+
+<Tabs>
+  <Tab title="Deactivate">
+    Deactivating an extension stops it from running without removing its data or files. This is useful when you need to temporarily disable a plugin for troubleshooting.
+
+    Click **Deactivate** next to the extension. The extension status changes to `deactivated`. It no longer loads on requests, but its database tables and configuration remain in place.
+  </Tab>
+  <Tab title="Activate">
+    To re-enable a deactivated extension, click **Activate**. ZenTao checks for file conflicts before activating. If a conflict is found, you can choose to ignore it and activate anyway, or resolve the conflict first.
+  </Tab>
+  <Tab title="Upgrade">
+    When a newer version of an installed extension is available and compatible with your ZenTao version, an upgrade link appears in the installed extensions list. Click **Upgrade** to update the extension to the latest release.
+
+    The upgrade process re-uses the install flow: ZenTao downloads the new package, asks you to confirm the license, and then applies the update.
+  </Tab>
+  <Tab title="Uninstall">
+    Click **Uninstall** to remove an extension. ZenTao prompts for confirmation before proceeding.
+
+    Before uninstalling:
+
+    - ZenTao checks whether any other installed extension depends on this one. If dependencies exist, you must uninstall them first.
+    - If the extension made database changes, ZenTao may create a backup of those tables before reversing them.
+
+    After uninstalling, the extension status changes to `available` — its package remains on disk but it is no longer active.
+  </Tab>
+  <Tab title="Erase">
+    Erasing goes one step further than uninstalling: it removes the extension's package files from disk entirely. Use **Erase** only when you want to completely remove all traces of the extension from the server.
+  </Tab>
+</Tabs>
+
+## Extension compatibility
+
+Each extension declares which versions of ZenTao it is compatible with. ZenTao checks this compatibility before allowing installation. If the extension is not marked as compatible with your version, ZenTao shows a warning but allows you to override the check.
+
+<Warning>
+Installing an incompatible extension can cause errors or unexpected behavior. Only override the compatibility check if you have tested the extension in a non-production environment first.
+</Warning>
+
+## Custom extensions
+
+The `extension/custom/` directory in your ZenTao installation is reserved for custom extensions — code you or your team write to extend or modify ZenTao's behavior without altering the core files.
+
+Custom extensions placed in this directory follow the same structure and lifecycle as store extensions. They appear in the extension manager alongside installed store extensions once activated.
+
+<Note>
+The `extension/custom/` directory is intentionally empty in a fresh ZenTao installation (it contains only a `.gitkeep` file). Your custom extension code goes here and is not overwritten during ZenTao upgrades.
+</Note>
+
+## Extension structure overview
+
+For reference, a ZenTao extension package contains a configuration file that declares its metadata: the extension code, version, author, license, and which ZenTao versions it is compatible with. The extension manager reads this configuration during install and upgrade to validate compatibility and manage the extension's lifecycle.
+
+## Frequently asked questions
+
+<AccordionGroup>
+  <Accordion title="Can I install extensions without internet access?">
+    Yes. Download the `.zip` package from [zentao.pm/extension-browse.html](https://zentao.pm/extension-browse.html) using a machine that has internet access, then upload the file using the **Upload Extension** option.
+  </Accordion>
+  <Accordion title="What happens to my data if I uninstall an extension?">
+    If the extension added database tables, ZenTao attempts to back up those tables before reversing the schema changes. However, the backup behavior depends on the extension. Review the extension's documentation before uninstalling if preserving data is important.
+  </Accordion>
+  <Accordion title="Why can't I activate a deactivated extension?">
+    Activation can fail if the extension's files conflict with files from another installed extension. ZenTao shows the conflicting file paths. You can either resolve the conflict manually or use the **Activate (ignore conflicts)** option if you understand the implications.
+  </Accordion>
+  <Accordion title="Can I upgrade to a paid extension from a free one?">
+    If a newer release of an extension is marked as a paid or private download, the upgrade link shown in the installed list points directly to the extension's download page on the ZenTao store rather than triggering an in-app download. You purchase and download the package there, then upload it manually.
+  </Accordion>
+</AccordionGroup>

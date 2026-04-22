@@ -1,0 +1,171 @@
+---
+title: "Set up Jenkins CI/CD pipelines and track builds in ZenTao"
+description: "Connect Jenkins to ZenTao to trigger builds, track pipeline results, and link build outcomes to versions and releases in your project workflow."
+---
+
+ZenTao integrates with Jenkins so that your continuous integration and delivery activity is visible alongside the rest of your project work. Once you connect a Jenkins server, you can define pipeline jobs, trigger builds from ZenTao, and have build results reported back automatically — linking passing builds to product versions and releases.
+
+## How the integration works
+
+ZenTao treats Jenkins as a "pipeline server." A pipeline in ZenTao is the pairing of a registered Jenkins server with one or more Jenkins jobs (called **compiles** in ZenTao). The lifecycle looks like this:
+
+1. You register a Jenkins server in ZenTao.
+2. ZenTao lists the available jobs from that server.
+3. You create a compile record that links a ZenTao execution or project to a Jenkins job.
+4. A build is triggered — either manually from ZenTao or from Jenkins itself.
+5. Jenkins (or a test runner) posts the result back to ZenTao via the API.
+6. The result appears in ZenTao and can be linked to a product version or release.
+
+---
+
+## Connecting a Jenkins server
+
+<Steps>
+  <Step title="Open the Jenkins server list">
+    Navigate to **DevOps → Jenkins** in ZenTao. This section lists all registered Jenkins servers.
+  </Step>
+  <Step title="Create a server record">
+    Click **Create Jenkins Server** and fill in the following fields:
+
+    | Field | Description |
+    |-------|-------------|
+    | **Application Name** | A display name for this server inside ZenTao |
+    | **Server URL** | The full URL of your Jenkins instance (for example, `http://jenkins.example.com:8080`) |
+    | **Username** | A Jenkins user account with job-read and build permissions |
+    | **Password** | The password for that account |
+    | **Token** | An API token for the account — if provided, the token takes precedence over the password |
+
+    ZenTao calls `checkTokenAccess` to verify the credentials against the Jenkins API before saving. If verification fails, the server record is not created.
+  </Step>
+  <Step title="Verify the connection">
+    After saving, ZenTao lists jobs available on the server. If the job list is empty, check that the account has permission to enumerate jobs and that "Prevent Cross Site Request Forgery exploits" is disabled in Jenkins when using password authentication.
+  </Step>
+</Steps>
+
+<Warning>
+  If you authenticate with a password rather than a token, you must disable the **Prevent Cross Site Request Forgery exploits** setting in Jenkins Global Security, otherwise API calls from ZenTao will be rejected.
+</Warning>
+
+<Tip>
+  API tokens are recommended over passwords. Generate a token from your Jenkins user profile page (**User → Configure → API Token**) and paste it into the **Token** field in ZenTao.
+</Tip>
+
+---
+
+## Understanding pipelines and compiles
+
+In ZenTao, **pipeline** is the general term for any registered CI/CD server (Jenkins, GitLab, Gitea, Gogs). A **compile** is a specific build job created within a pipeline — the unit of work that runs and produces a result.
+
+When you delete a Jenkins server, ZenTao prevents deletion if that server still has associated compile records. You must unlink or delete the compiles first.
+
+---
+
+## Creating a compile (build job)
+
+<Steps>
+  <Step title="Navigate to builds">
+    Open the project or execution in ZenTao and go to **DevOps → Compile** (or use the API endpoint `GET /jobs` to list existing compile jobs).
+  </Step>
+  <Step title="Select the Jenkins server and job">
+    ZenTao fetches the job tree from Jenkins using `ajaxGetJenkinsTasks`. Select the server from the **Server** dropdown and then choose the Jenkins job from the tree. Jobs are fetched up to three levels deep.
+  </Step>
+  <Step title="Link to a product version (optional)">
+    You can associate the compile with a product version at creation time or after a build completes. This makes the build result appear on the version's detail page.
+  </Step>
+  <Step title="Save the compile record">
+    Once saved, the compile appears in the build list for the execution or project and can be triggered.
+  </Step>
+</Steps>
+
+---
+
+## Build lifecycle: from trigger to release
+
+The following diagram describes the flow of a build from trigger to result reporting:
+
+```text
+ZenTao triggers build     Jenkins runs job     Result posted to ZenTao
+─────────────────────► ─────────────────────► ──────────────────────────►
+ (manual or webhook)      (compile job runs)    /ztf/submitResult
+                                                /host/submitResult
+                                                /ciresults
+```
+
+### Triggering a build
+
+You can trigger a Jenkins build:
+
+- **From ZenTao**: click **Build** on a compile record. ZenTao calls the Jenkins remote trigger API.
+- **From Jenkins**: configure a post-build step in Jenkins to notify ZenTao when the build completes.
+
+### Reporting build results back to ZenTao
+
+ZenTao exposes three API endpoints for receiving build results:
+
+| Endpoint | Route | Use case |
+|----------|-------|----------|
+| ZTF test result submission | `POST /ztf/submitResult` | Submit automated test results from the ZTF test runner |
+| Host agent result submission | `POST /host/submitResult` | Submit results from a host-based build agent |
+| CI result submission | `POST /ciresults` | Generic CI result submission endpoint |
+
+A typical Jenkins post-build script posts to `/ztf/submitResult` or `/ciresults` with the build status, log, and the compile job ID so ZenTao can match the result to the right record.
+
+<CodeGroup>
+
+```bash Post result via curl (ztfSubmit)
+curl -X POST https://zentao.example.com/api.php/v1/ztf/submitResult \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "job": 42,
+    "status": "success",
+    "result": "passed"
+  }'
+```
+
+```bash Post result via curl (ciresults)
+curl -X POST https://zentao.example.com/api.php/v1/ciresults \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "job": 42,
+    "status": "fail",
+    "result": "failed"
+  }'
+```
+
+</CodeGroup>
+
+<Note>
+  Replace `YOUR_API_TOKEN` with a valid ZenTao API token obtained from `POST /tokens`. The `job` field must match the compile record ID in ZenTao.
+</Note>
+
+---
+
+## Linking builds to versions and releases
+
+ZenTao models a **build** as an object that belongs to a project or execution. You can link a build to a product version through the builds API:
+
+- `GET /builds` — list builds across the system
+- `GET /projects/:id/builds` — list builds for a specific project
+- `GET /executions/:id/builds` — list builds for a specific execution
+- `GET /builds/:id` — get a single build record
+- `GET /products/:id/releases` — list releases for a product
+
+When a build record is associated with a version, the version detail page shows which build produced it, giving you a traceable link from commit → build → version → release.
+
+---
+
+## Editing and deleting Jenkins servers
+
+<AccordionGroup>
+  <Accordion title="Edit a Jenkins server">
+    Go to **DevOps → Jenkins**, find the server, and click **Edit**. ZenTao re-validates the credentials when you save. All changes are logged in the action history.
+  </Accordion>
+  <Accordion title="Delete a Jenkins server">
+    You can only delete a Jenkins server if it has no associated compile jobs. If deletion is blocked, navigate to the compile list for that server and remove or re-assign the jobs first.
+  </Accordion>
+  <Accordion title="Viewing the Jenkins job tree">
+    ZenTao retrieves the job tree asynchronously (`ajaxGetJenkinsTasks`). The tree is fetched up to three levels deep. Folder-style jobs in Jenkins appear as parent nodes with nested jobs beneath them.
+  </Accordion>
+</AccordionGroup>

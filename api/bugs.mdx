@@ -1,0 +1,417 @@
+---
+title: "Bugs API — ZenTao bug tracking and triage endpoints"
+description: "Report, assign, confirm, resolve, reopen, and close bugs in ZenTao via REST API. Covers the complete bug lifecycle from active to resolved and closed."
+---
+
+The Bugs API exposes the full lifecycle of bug records in ZenTao. Bugs start as `active`, can be `confirmed`, `resolved`, and finally `closed`. You can also reopen a resolved or closed bug using the activate endpoint. All requests require a valid token in the `Token` header — see the [authentication guide](/api/authentication). The base URL for all endpoints is `https://your-zentao.example.com/api.php/v1`.
+
+---
+
+## GET /bugs
+
+Returns a paginated list of bugs visible to the authenticated user.
+
+<ParamField query="status" type="string">
+  Filter by bug status. One of `active`, `resolved`, or `closed`.
+</ParamField>
+
+<ParamField query="product" type="integer">
+  Filter by product ID.
+</ParamField>
+
+<ParamField query="severity" type="integer">
+  Filter by severity level (`1`–`4`).
+</ParamField>
+
+<ParamField query="assignedTo" type="string">
+  Filter by assignee account name.
+</ParamField>
+
+<ParamField query="page" type="integer">
+  Page number. Defaults to `1`.
+</ParamField>
+
+<ParamField query="limit" type="integer">
+  Records per page. Defaults to `20`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/bugs?status=active&severity=1" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Bug ID.
+</ResponseField>
+<ResponseField name="title" type="string">
+  Bug title.
+</ResponseField>
+<ResponseField name="product" type="integer">
+  ID of the product this bug belongs to.
+</ResponseField>
+<ResponseField name="project" type="integer">
+  ID of the project this bug is associated with.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Bug status: `active`, `resolved`, or `closed`.
+</ResponseField>
+<ResponseField name="severity" type="integer">
+  Severity level. `1` (critical) through `4` (minor).
+</ResponseField>
+<ResponseField name="pri" type="integer">
+  Priority. `1` (highest) through `4` (lowest).
+</ResponseField>
+<ResponseField name="type" type="string">
+  Bug type. One of `codeerror`, `config`, `install`, `security`, `performance`, `standard`, `automation`, `designdefect`, or `others`.
+</ResponseField>
+<ResponseField name="assignedTo" type="string">
+  Current assignee account name.
+</ResponseField>
+<ResponseField name="openedBy" type="string">
+  Reporter account name.
+</ResponseField>
+<ResponseField name="openedDate" type="string">
+  Report date and time (`YYYY-MM-DD HH:MM:SS`).
+</ResponseField>
+
+---
+
+## GET /bugs/:id
+
+Returns a single bug by its ID with full details.
+
+<ParamField path="id" type="integer" required>
+  The bug ID.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://your-zentao.example.com/api.php/v1/bugs/200" \
+  -H "Token: YOUR_API_TOKEN"
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  Bug ID.
+</ResponseField>
+<ResponseField name="title" type="string">
+  Bug title.
+</ResponseField>
+<ResponseField name="product" type="integer">
+  Product ID.
+</ResponseField>
+<ResponseField name="project" type="integer">
+  Project ID.
+</ResponseField>
+<ResponseField name="execution" type="integer">
+  Execution ID, or `0` if not linked.
+</ResponseField>
+<ResponseField name="module" type="integer">
+  Module ID.
+</ResponseField>
+<ResponseField name="status" type="string">
+  Bug status.
+</ResponseField>
+<ResponseField name="confirmed" type="integer">
+  Whether the bug has been confirmed. `1` = confirmed, `0` = unconfirmed.
+</ResponseField>
+<ResponseField name="severity" type="integer">
+  Severity level (1–4).
+</ResponseField>
+<ResponseField name="pri" type="integer">
+  Priority (1–4).
+</ResponseField>
+<ResponseField name="type" type="string">
+  Bug type.
+</ResponseField>
+<ResponseField name="os" type="string">
+  Operating system where the bug was found (e.g., `windows`, `linux`, `osx`, `android`, `ios`).
+</ResponseField>
+<ResponseField name="browser" type="string">
+  Browser where the bug was found (e.g., `chrome`, `firefox`, `safari`, `edge`).
+</ResponseField>
+<ResponseField name="steps" type="string">
+  Reproduction steps (HTML).
+</ResponseField>
+<ResponseField name="openedBy" type="string">
+  Reporter account name.
+</ResponseField>
+<ResponseField name="openedDate" type="string">
+  Report timestamp.
+</ResponseField>
+<ResponseField name="openedBuild" type="string">
+  Build in which the bug was found.
+</ResponseField>
+<ResponseField name="assignedTo" type="string">
+  Assignee account name.
+</ResponseField>
+<ResponseField name="assignedDate" type="string">
+  Assignment timestamp.
+</ResponseField>
+<ResponseField name="resolvedBy" type="string">
+  Account name of the person who resolved the bug.
+</ResponseField>
+<ResponseField name="resolution" type="string">
+  Resolution code. One of `fixed`, `bydesign`, `duplicate`, `external`, `notrepro`, `postponed`, `willnotfix`, or `tostory`.
+</ResponseField>
+<ResponseField name="resolvedBuild" type="string">
+  Build in which the bug was resolved.
+</ResponseField>
+<ResponseField name="resolvedDate" type="string">
+  Resolution timestamp.
+</ResponseField>
+<ResponseField name="closedBy" type="string">
+  Account name of the person who closed the bug.
+</ResponseField>
+<ResponseField name="closedDate" type="string">
+  Closure timestamp.
+</ResponseField>
+<ResponseField name="activatedCount" type="integer">
+  Number of times the bug has been reopened.
+</ResponseField>
+<ResponseField name="deadline" type="string">
+  Fix deadline (`YYYY-MM-DD`).
+</ResponseField>
+
+---
+
+## POST /bugs
+
+Reports a new bug.
+
+<ParamField body="product" type="integer" required>
+  ID of the product the bug belongs to.
+</ParamField>
+
+<ParamField body="title" type="string" required>
+  Bug title.
+</ParamField>
+
+<ParamField body="steps" type="string">
+  Reproduction steps. Accepts HTML.
+</ParamField>
+
+<ParamField body="severity" type="integer">
+  Severity level. One of `1`, `2`, `3`, or `4`. Defaults to `3`.
+</ParamField>
+
+<ParamField body="pri" type="integer">
+  Priority. One of `1`, `2`, `3`, or `4`. Defaults to `3`.
+</ParamField>
+
+<ParamField body="type" type="string">
+  Bug type. One of `codeerror`, `config`, `install`, `security`, `performance`, `standard`, `automation`, `designdefect`, or `others`.
+</ParamField>
+
+<ParamField body="assignedTo" type="string">
+  Account name to assign the bug to.
+</ParamField>
+
+<ParamField body="os" type="string">
+  Operating system. One of `windows`, `win11`, `win10`, `osx`, `linux`, `android`, `ios`, `ubuntu`, `others`, and more.
+</ParamField>
+
+<ParamField body="browser" type="string">
+  Browser. One of `chrome`, `firefox`, `safari`, `edge`, `ie`, `opera`, `other`, and more.
+</ParamField>
+
+<ParamField body="openedBuild" type="string">
+  Build ID or name in which the bug was found.
+</ParamField>
+
+<ParamField body="execution" type="integer">
+  ID of the execution to associate with this bug.
+</ParamField>
+
+<ParamField body="module" type="integer">
+  Module ID within the product.
+</ParamField>
+
+<ParamField body="deadline" type="string">
+  Fix deadline (`YYYY-MM-DD`).
+</ParamField>
+
+<ParamField body="mailto" type="string">
+  Comma-separated account names to notify by email.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/bugs" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product": 1,
+    "title": "Login button unresponsive on iOS 17",
+    "steps": "<p>1. Open app on iPhone 15.<br>2. Tap Login. No response.</p>",
+    "severity": 2,
+    "pri": 2,
+    "type": "codeerror",
+    "os": "ios",
+    "browser": "safari",
+    "assignedTo": "eve"
+  }'
+```
+</CodeGroup>
+
+**Response fields**
+
+<ResponseField name="id" type="integer">
+  ID of the newly created bug.
+</ResponseField>
+
+---
+
+## POST /bugs/:id/close
+
+Closes the specified bug.
+
+<ParamField path="id" type="integer" required>
+  The bug ID.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<Note>
+  Only bugs with status `resolved` can be closed directly. Active bugs that are unresolved will be skipped automatically.
+</Note>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/bugs/200/close" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"comment": "Verified fixed in build 3.2.1."}'
+```
+</CodeGroup>
+
+---
+
+## POST /bugs/:id/assign
+
+Assigns the bug to a team member.
+
+<ParamField path="id" type="integer" required>
+  The bug ID.
+</ParamField>
+
+<ParamField body="assignedTo" type="string" required>
+  Account name of the new assignee.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/bugs/200/assign" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"assignedTo": "frank"}'
+```
+</CodeGroup>
+
+---
+
+## POST /bugs/:id/confirm
+
+Confirms that the bug is a valid defect.
+
+<ParamField path="id" type="integer" required>
+  The bug ID.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/bugs/200/confirm" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"comment": "Reproduced on iOS 17.3."}'
+```
+</CodeGroup>
+
+---
+
+## POST /bugs/:id/resolve
+
+Marks the bug as resolved and records how it was fixed.
+
+<ParamField path="id" type="integer" required>
+  The bug ID.
+</ParamField>
+
+<ParamField body="resolution" type="string" required>
+  Resolution code. One of `fixed`, `bydesign`, `duplicate`, `external`, `notrepro`, `postponed`, or `willnotfix`.
+</ParamField>
+
+<ParamField body="resolvedBuild" type="string">
+  Build ID or name in which the fix was applied.
+</ParamField>
+
+<ParamField body="duplicateBug" type="integer">
+  If `resolution` is `duplicate`, provide the ID of the original bug.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional comment describing the fix.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/bugs/200/resolve" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resolution": "fixed",
+    "resolvedBuild": "3.2.1",
+    "comment": "Fixed null pointer in login handler."
+  }'
+```
+</CodeGroup>
+
+---
+
+## POST /bugs/:id/active
+
+Reopens a resolved or closed bug, resetting its status to `active`.
+
+<ParamField path="id" type="integer" required>
+  The bug ID.
+</ParamField>
+
+<ParamField body="assignedTo" type="string">
+  Account name to reassign the reopened bug to.
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Required explanation for why the bug is being reopened.
+</ParamField>
+
+<Note>
+  Only bugs with status `resolved` or `closed` can be activated. Calling this endpoint increments the `activatedCount` field on the bug.
+</Note>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://your-zentao.example.com/api.php/v1/bugs/200/active" \
+  -H "Token: YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "assignedTo": "eve",
+    "comment": "Issue recurred in build 3.2.2. Reopening for investigation."
+  }'
+```
+</CodeGroup>
